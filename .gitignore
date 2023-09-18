@@ -2,3 +2,4 @@
 frontend/musta-project/env
 frontend/musta-project/env.production
 backend/api/src/main/resources/application-prod.yml
+.gradle/
