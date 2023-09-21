@@ -1,6 +1,6 @@
 package mutsa.api.dto.review;
 
-import static mutsa.common.dto.constants.ImageConstants.DEFAULT_ARTICLE_IMG;
+import static mutsa.common.constants.ImageConstants.DEFAULT_ARTICLE_IMG;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;

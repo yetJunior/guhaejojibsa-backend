@@ -1,6 +1,6 @@
 package mutsa.common.dto.user;
 
-import static mutsa.common.dto.constants.ImageConstants.DEFAULT_AVATAR_IMAGE;
+import static mutsa.common.constants.ImageConstants.DEFAULT_AVATAR_IMAGE;
 
 import java.util.Set;
 import java.util.stream.Collectors;

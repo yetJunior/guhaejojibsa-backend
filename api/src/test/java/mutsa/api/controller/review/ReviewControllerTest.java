@@ -13,6 +13,7 @@ import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.OrderStatus;
 import mutsa.common.domain.models.review.Review;
 import mutsa.common.domain.models.user.User;
+import mutsa.common.domain.models.order.Order;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.order.OrderRepository;
 import mutsa.common.repository.review.ReviewRepository;
@@ -67,7 +68,7 @@ public class ReviewControllerTest {
 
     private User reviewer1, reviewer2;
     private Article article;
-    private org.junit.jupiter.api.Order order;
+    private Order order;
 
     @BeforeAll
     public static void beforeAll() {

@@ -10,6 +10,7 @@ import mutsa.api.dto.payment.PaymentDto;
 import mutsa.api.dto.payment.PaymentSuccessDto;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
+import mutsa.common.domain.models.order.Order;
 import mutsa.common.domain.models.payment.PayType;
 import mutsa.common.domain.models.payment.Payment;
 import mutsa.common.domain.models.user.User;
@@ -17,7 +18,10 @@ import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.order.OrderRepository;
 import mutsa.common.repository.payment.PaymentRepository;
 import mutsa.common.repository.user.UserRepository;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,12 +31,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.transaction.annotation.Transactional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.*;
+import static org.mockito.BDDMockito.mockStatic;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -86,7 +88,7 @@ class PaymentModuleServiceTest {
         return userRepository.save(user);
     }
 
-    private Payment createAndSavePayment(Article article, org.junit.jupiter.api.Order order) {
+    private Payment createAndSavePayment(Article article, Order order) {
         Payment payment = Payment.of(PayType.CARD, article, order);
         return paymentRepository.save(payment);
     }
@@ -118,7 +120,7 @@ class PaymentModuleServiceTest {
     @Test
     void tossPaymentSuccessTest() {
         // Given
-        org.junit.jupiter.api.Order savedOrder = createAndSaveOrder();
+        Order savedOrder = createAndSaveOrder();
         log.info(savedOrder.getApiId());
         mockExternalPaymentApi(savedOrder.getApiId(), 50000L);
         createAndSavePayment(article, savedOrder);
@@ -131,8 +133,8 @@ class PaymentModuleServiceTest {
         mockServer.verify();
     }
 
-    private org.junit.jupiter.api.Order createAndSaveOrder() {
-        org.junit.jupiter.api.Order order = Order.of(article, buyer);
+    private Order createAndSaveOrder() {
+        Order order = Order.of(article, buyer);
         return orderRepository.save(order);
     }
 

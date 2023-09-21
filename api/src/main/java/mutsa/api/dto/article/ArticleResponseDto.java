@@ -16,7 +16,7 @@ import mutsa.common.domain.models.image.Image;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static mutsa.common.dto.constants.ImageConstants.DEFAULT_ARTICLE_IMG;
+import static mutsa.common.constants.ImageConstants.DEFAULT_ARTICLE_IMG;
 
 @Builder
 @Getter
