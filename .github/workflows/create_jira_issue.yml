@@ -17,7 +17,7 @@ jobs:
     - name: Create Issue 
       uses: atlassian/gajira-create@v3
       with:
-        project: MP 
+        project: GJ
         issuetype: Task 
         summary: '${{ github.event.issue.title }}'
         description: '${{ github.event.issue.html_url }}'
