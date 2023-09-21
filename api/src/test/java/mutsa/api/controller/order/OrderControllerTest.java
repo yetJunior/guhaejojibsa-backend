@@ -9,6 +9,7 @@ import mutsa.api.config.TestRedisConfiguration;
 import mutsa.api.dto.order.OrderStatusRequestDto;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
+import mutsa.common.domain.models.order.Order;
 import mutsa.common.domain.models.order.OrderStatus;
 import mutsa.common.domain.models.payment.PayType;
 import mutsa.common.domain.models.payment.Payment;
@@ -136,8 +137,8 @@ class OrderControllerTest {
     @Test
     @DisplayName("주문 단일건 조회")
     void getDetailOrder() throws Exception {
-        org.junit.jupiter.api.Order savedOrder1 = orderRepository.save(org.junit.jupiter.api.Order.of(article, consumer));
-        org.junit.jupiter.api.Order savedOrder2 = orderRepository.save(org.junit.jupiter.api.Order.of(article, consumer));
+        Order savedOrder1 = orderRepository.save(Order.of(article, consumer));
+        Order savedOrder2 = orderRepository.save(Order.of(article, consumer));
         Payment payment = Payment.of(PayType.CARD, article, savedOrder1);
         paymentRepository.save(payment);
 
@@ -164,9 +165,9 @@ class OrderControllerTest {
     @DisplayName("주문 게시글 별 조회(판매자)")
     @Test
     void getAllOrder() throws Exception {
-        org.junit.jupiter.api.Order savedOrder1 = orderRepository.save(org.junit.jupiter.api.Order.of(article, consumer));
-        org.junit.jupiter.api.Order savedOrder2 = orderRepository.save(org.junit.jupiter.api.Order.of(article, consumer));
-        org.junit.jupiter.api.Order savedOrder3 = orderRepository.save(org.junit.jupiter.api.Order.of(article, consumer));
+        Order savedOrder1 = orderRepository.save(Order.of(article, consumer));
+        Order savedOrder2 = orderRepository.save(Order.of(article, consumer));
+        Order savedOrder3 = orderRepository.save(Order.of(article, consumer));
 
         //given
         when(SecurityUtil.getCurrentUsername()).thenReturn(seller.getUsername());
@@ -197,9 +198,9 @@ class OrderControllerTest {
 
     @Test
     void testGetOrderBySellerFilter() throws Exception {
-        List<org.junit.jupiter.api.Order> dummy = new ArrayList<>();
+        List<Order> dummy = new ArrayList<>();
         for (int i = 0; i < 25; i++) {
-            dummy.add(org.junit.jupiter.api.Order.of(article, consumer));
+            dummy.add(Order.of(article, consumer));
         }
         orderRepository.saveAll(dummy);
 
@@ -232,9 +233,9 @@ class OrderControllerTest {
 
     @Test
     void testGetOrderByConsumerFilter() throws Exception {
-        List<org.junit.jupiter.api.Order> dummy = new ArrayList<>();
+        List<Order> dummy = new ArrayList<>();
         for (int i = 0; i < 25; i++) {
-            dummy.add(org.junit.jupiter.api.Order.of(article, consumer));
+            dummy.add(Order.of(article, consumer));
         }
         orderRepository.saveAll(dummy);
 
@@ -268,7 +269,7 @@ class OrderControllerTest {
     @DisplayName("주문 상태 수정")
     @Test
     void updateOrder() throws Exception {
-        org.junit.jupiter.api.Order savedOrder = orderRepository.save(org.junit.jupiter.api.Order.of(article, consumer));
+        Order savedOrder = orderRepository.save(Order.of(article, consumer));
         Payment payment = Payment.of(PayType.CARD, article, savedOrder);
         paymentRepository.save(payment);
         entityManager.flush();
@@ -301,7 +302,7 @@ class OrderControllerTest {
     @DisplayName("주문 삭제")
     @Test
     void deleteOrder() throws Exception {
-        org.junit.jupiter.api.Order savedOrder = orderRepository.save(Order.of(article, consumer));
+        Order savedOrder = orderRepository.save(Order.of(article, consumer));
         entityManager.flush();
         entityManager.clear();
         //given
