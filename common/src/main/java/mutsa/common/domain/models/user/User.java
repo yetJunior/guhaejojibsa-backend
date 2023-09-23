@@ -39,6 +39,7 @@ public class User extends BaseTimeEntity implements Serializable {
 
     @Column(nullable = false, unique = true)
     private String username;
+    private String  nickname;
 
     @Column(nullable = false)
     private String password;
@@ -70,10 +71,6 @@ public class User extends BaseTimeEntity implements Serializable {
     @Column(nullable = false, length = 2)
     private Boolean isAvailable = true;
 
-    /* mapping table  */
-    @OneToOne(mappedBy = "user", fetch = LAZY)
-    @JsonIgnore
-    private Member member;
 
     @Singular
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
@@ -106,13 +103,6 @@ public class User extends BaseTimeEntity implements Serializable {
                 .contains(roleStatus);
     }
 
-    public void addMember(Member member) {
-        if (member != null) {
-            this.member = member;
-            member.addUser(this);
-        }
-    }
-
     public void addAddress(Address address) {
         this.address = address;
     }
@@ -126,7 +116,7 @@ public class User extends BaseTimeEntity implements Serializable {
     }
 
     public static User of(String username, String encodedPassword, String email,
-                          String oauth2Username, String imageUrl, Member member) {
+                          String oauth2Username, String imageUrl,String nickname) {
 
         User user = User.builder()
                 .username(username)
@@ -134,13 +124,13 @@ public class User extends BaseTimeEntity implements Serializable {
                 .email(email)
                 .oauth2Username(oauth2Username == null ? "" : oauth2Username)
                 .imageUrl(StringUtils.hasText(imageUrl) ? imageUrl : "")
+                .nickname(nickname)
                 .build();
-        user.addMember(member);
         return user;
     }
 
     public static User of(String username, String encodedPassword, String email,
-                          String oauth2Username, OAuth2Type oauthType, String imageUrl, Member member) {
+                          String oauth2Username, OAuth2Type oauthType, String imageUrl, String nickname) {
 
         User user = User.builder()
                 .username(username)
@@ -150,8 +140,9 @@ public class User extends BaseTimeEntity implements Serializable {
                 .oAuth2Type(oauthType)
                 .imageUrl(StringUtils.hasText(imageUrl) ? imageUrl : "")
                 .isOAuth2(true)
+                .nickname(nickname)
                 .build();
-        user.addMember(member);
+
         return user;
     }
 

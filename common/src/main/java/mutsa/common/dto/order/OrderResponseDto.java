@@ -9,7 +9,8 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static mutsa.common.dto.constants.ImageConstants.DEFAULT_AVATAR_IMAGE;
+import static mutsa.common.constants.ImageConstants.DEFAULT_AVATAR_IMAGE;
+
 
 @Getter
 @NoArgsConstructor

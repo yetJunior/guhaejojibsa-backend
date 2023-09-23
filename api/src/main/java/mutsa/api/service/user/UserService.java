@@ -16,14 +16,16 @@ import mutsa.api.dto.user.SignUpUserDto;
 import mutsa.api.util.CookieUtil;
 import mutsa.api.util.JwtTokenProvider;
 import mutsa.api.util.JwtTokenProvider.JWTInfo;
-import mutsa.common.domain.models.user.*;
+import mutsa.common.domain.models.user.Role;
+import mutsa.common.domain.models.user.RoleStatus;
+import mutsa.common.domain.models.user.User;
+import mutsa.common.domain.models.user.UserRole;
 import mutsa.common.domain.models.user.embedded.Address;
 import mutsa.common.domain.models.user.embedded.OAuth2Type;
 import mutsa.common.dto.user.UserInfoDto;
 import mutsa.common.exception.BusinessException;
 import mutsa.common.exception.ErrorCode;
 import mutsa.common.repository.cache.UserCacheRepository;
-import mutsa.common.repository.member.MemberRepository;
 import mutsa.common.repository.redis.RefreshTokenRedisRepository;
 import mutsa.common.repository.user.RoleRepository;
 import mutsa.common.repository.user.UserRepository;
@@ -52,7 +54,6 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final MemberRepository memberRepository;
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -65,8 +66,6 @@ public class UserService {
         signUpUserDto.setPassword(bCryptPasswordEncoder.encode(signUpUserDto.getPassword()));
 
         User newUser = SignUpUserDto.from(signUpUserDto);
-        Member newMember = Member.of(signUpUserDto.getNickname());
-        newUser.addMember(newMember);
         Role role = roleRepository.findByValue(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
 
@@ -74,7 +73,6 @@ public class UserService {
         userRole.addUser(newUser);
 
         userRepository.save(newUser);
-        memberRepository.save(newMember);
         userRoleRepository.save(userRole);
     }
 
@@ -88,8 +86,6 @@ public class UserService {
         signUpUserDto.setPassword(bCryptPasswordEncoder.encode(signUpUserDto.getPassword()));
 
         User newUser = SignUpUserDto.from(signUpUserDto, oauthName, picture, oAuth2Type);
-        Member newMember = Member.of(signUpUserDto.getNickname());
-        newUser.addMember(newMember);
         Role role = roleRepository.findByValue(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
 
@@ -97,7 +93,6 @@ public class UserService {
         userRole.addUser(newUser);
 
         userRepository.save(newUser);
-        memberRepository.save(newMember);
         userRoleRepository.save(userRole);
     }
 
@@ -217,10 +212,10 @@ public class UserService {
 
     public String refreshToken(HttpServletRequest request) {
         return Arrays.stream(request.getCookies())
-            .filter(jwtTokenProvider::isCookieNameRefreshToken)
-            .map(Cookie::getValue)
-            .findFirst()
-            .orElseThrow(() -> new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE));
+                .filter(jwtTokenProvider::isCookieNameRefreshToken)
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE));
     }
 
     public boolean existUserByEmail(String email) {
@@ -228,14 +223,14 @@ public class UserService {
     }
 
     @Transactional
-    public void updateImageUrl(UserDetails userDetails,String raw) {
+    public void updateImageUrl(UserDetails userDetails, String raw) {
         User user = findUsername(userDetails.getUsername());
 
         user.updateImageUrl(raw.replace("\\", "").replace("\"", ""));
     }
 
     @Transactional
-    public void updateEmail(UserDetails userDetails,String email) {
+    public void updateEmail(UserDetails userDetails, String email) {
         User findUser = findUsername(userDetails.getUsername());
 
         findUser.updateEmail(email);
@@ -257,7 +252,7 @@ public class UserService {
 
     public boolean isOauthUser(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))
-            .getIsOAuth2();
+                .getIsOAuth2();
     }
 
     private String encodedPassword(String password) {

@@ -25,6 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,29 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String BEARER = "Bearer ";
+
+    private static final List<String> EXCLUDE_URL =
+            List.of("/api/auth/token/refresh",
+                    "/auth/**",
+                    "/ws",
+                    "/oauth2/authorization/**,",
+                    "/api/articles",
+                    "/api/review/{reviewApiId}",
+                    "/api/article/{articleApiId}/review",
+                    "/v3/api-docs/**",
+                    "/configuration/**",
+                    "/webjars/**",
+                    "/swagger-ui/**"
+                    );
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return EXCLUDE_URL
+                .stream()
+                .anyMatch(exclude
+                        -> exclude.equalsIgnoreCase(request.getServletPath()
+                ));
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -54,9 +78,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 log.info(jwtInfo.toString());
             } catch (TokenExpiredException e) {
                 log.info("TokenExpiredException: ", e);
-                if (!request.getRequestURL().toString().contains("/api/auth/token/refresh")) {
-                    getAccessTokenExpired(response, ErrorResponse.of(ErrorCode.ACCESS_TOKEN_EXPIRED));
-                }
+                getAccessTokenExpired(response, ErrorResponse.of(ErrorCode.ACCESS_TOKEN_EXPIRED));
             } catch (JWTVerificationException ignored) {
                 log.info("JWTVerificationException: ", ignored);
             }

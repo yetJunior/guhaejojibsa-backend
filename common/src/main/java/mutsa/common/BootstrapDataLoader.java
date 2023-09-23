@@ -11,7 +11,6 @@ import mutsa.common.domain.models.report.Report;
 import mutsa.common.domain.models.review.Review;
 import mutsa.common.domain.models.user.*;
 import mutsa.common.repository.article.ArticleRepository;
-import mutsa.common.repository.member.MemberRepository;
 import mutsa.common.repository.order.OrderRepository;
 import mutsa.common.repository.payment.PaymentRepository;
 import mutsa.common.repository.report.ReportRepository;
@@ -33,7 +32,6 @@ import java.util.*;
 public class BootstrapDataLoader {
 
     private final UserRepository userRepository;
-    private final MemberRepository memberRepository;
     private final UserRoleRepository userRoleRepository;
     private final AuthorityRepository authorityRepository;
     private final RoleRepository roleRepository;
@@ -126,6 +124,7 @@ public class BootstrapDataLoader {
         String email = (String) attributes.get("email");
         String imageUrl = (String) attributes.get("image_url");
         String password = (String) attributes.get("password");
+        String nickname = (String) attributes.get("password");
 
         RoleStatus role = (RoleStatus) attributes.get("role");
         HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
@@ -134,19 +133,17 @@ public class BootstrapDataLoader {
         String username = login;
         Optional<User> userOptional = userRepository.findByUsername(username);
         return signUpOrUpdateUser(login, email, imageUrl, username, password, userOptional,
-                necessaryAttributes, role);
+                necessaryAttributes, role,nickname);
     }
 
     private User signUpOrUpdateUser(String login, String email, String imageUrl, String username, String password,
-                                    Optional<User> userOptional, Map<String, Object> necessaryAttributes, RoleStatus roleEnum) {
+                                    Optional<User> userOptional, Map<String, Object> necessaryAttributes, RoleStatus roleEnum,String nickname) {
         User user;
         //회원가입
         if (userOptional.isEmpty()) {
-            Member member = Member.of(login);
-            memberRepository.save(member);
             Role role = roleRepository.findByValue(roleEnum).orElseThrow(() ->
                     new EntityNotFoundException(roleEnum + "에 해당하는 Role이 없습니다."));
-            user = User.of(username, bCryptPasswordEncoder.encode(password), email, login, imageUrl, member);
+            user = User.of(username, bCryptPasswordEncoder.encode(password), email, login, imageUrl, nickname);
             UserRole userRole = UserRole.of(user, role);
 
             userRepository.save(user);
