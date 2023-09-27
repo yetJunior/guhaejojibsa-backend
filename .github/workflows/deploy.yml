@@ -68,27 +68,27 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_PASSWORD }}
 
       # Build Docker image
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }} ./
+        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPOSITORY }} ./
 
       # Docker Hub에 private 이미지로 푸시
       - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPOSITORY }}
 
       # Deploy to AWS EC2
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.AWS_HOST }} # EC2 인스턴스 퍼블릭 DNS
+          host: ${{ env.AWS_HOST }} # EC2 인스턴스 퍼블릭 DNS
           username: ubuntu
-          key: ${{ secrets.AWS_PRIVACY_KEY }} # pem 키
+          key: ${{ env.AWS_PRIVACY_KEY }} # pem 키
           script: |
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
-            sudo docker stop ${{ secrets.DOCKERHUB_REPOSITORY }} || true
-            sudo docker rm ${{ secrets.DOCKERHUB_REPOSITORY }} || true
+            sudo docker pull ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPOSITORY }}:latest
+            sudo docker stop ${{ env.DOCKERHUB_REPOSITORY }} || true
+            sudo docker rm ${{ env.DOCKERHUB_REPOSITORY }} || true
             sudo docker image prune -a || y
-            sudo docker run -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --name app --restart always ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+            sudo docker run -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --name app --restart always ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPOSITORY }}:latest
