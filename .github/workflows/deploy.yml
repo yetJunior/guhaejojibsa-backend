@@ -17,10 +17,9 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  build:
     name: Deploy Backend
     runs-on: ubuntu-latest
-    environment: production
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
