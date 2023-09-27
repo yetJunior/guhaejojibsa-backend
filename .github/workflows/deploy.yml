@@ -61,7 +61,7 @@ jobs:
       # Spring Boot Build
       - name: Spring Boot Build
         run: |
-          ./gradlew clean build 
+          ./gradlew clean build -i
 
       # 도커 허브 로그인
       - name: Log in to Docker Hub
