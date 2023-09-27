@@ -83,7 +83,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.AWS_HOST }} # EC2 인스턴스 퍼블릭 DNS
-          username: ubuntu
+          username: ec2
           key: ${{ secrets.AWS_PRIVACY_KEY }} # pem 키
           script: |
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
