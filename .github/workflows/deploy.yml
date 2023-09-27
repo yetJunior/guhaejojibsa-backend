@@ -83,11 +83,12 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.AWS_HOST }} # EC2 인스턴스 퍼블릭 DNS
-          username: ec2
+          username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.AWS_PRIVACY_KEY }} # pem 키
+          port: ${{ secrets.REMOTE_SSH_PORT }} # 접속포트
           script: |
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
             sudo docker stop ${{ secrets.DOCKERHUB_REPOSITORY }} || true
             sudo docker rm ${{ secrets.DOCKERHUB_REPOSITORY }} || true
             sudo docker image prune -a || y
-            sudo docker run -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --name app --restart always ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+            sudo docker run -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --name ${{ secrets.DOCKERHUB_REPOSITORY } --restart always ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
