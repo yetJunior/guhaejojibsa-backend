@@ -34,14 +34,14 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      - name : Set secret file (prod)
-        run : |
-          echo "${{ secrets.APPLICATION_PROD }}" > ./api/src/main/resources/application-prod.yml
+      - name: Set secret file (prod)
+        run: |
+          echo "${{ secrets.APPLICATION_PROD }}" | base64 --decode > ./api/src/main/resources/application-prod.yml
           chmod 600 ./api/src/main/resources/application-prod.yml
 
-      - name : Set secret file (test)
-        run : |
-          echo "${{ secrets.APPLICATION_TEST }}" > ./api/src/main/resources/application-test.yml
+      - name: Set secret file (test)
+        run: |
+          echo "${{ secrets.APPLICATION_TEST }}" base64 --decode > ./api/src/main/resources/application-test.yml
           chmod 600 ./api/src/main/resources/application-test.yml
 
       # (5) 현재 위치 파악하는 cmd
@@ -54,7 +54,7 @@ jobs:
           sudo chmod +x ./api/src/main/resources/application-prod.yml
           ls -la ./api/src/main/resources
 
-       # Grant execute permission to gradlew
+      # Grant execute permission to gradlew
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
 
