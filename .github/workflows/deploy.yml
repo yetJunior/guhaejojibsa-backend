@@ -75,6 +75,10 @@ jobs:
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }} ./
 
+      # Docker Hub에 private 이미지로 푸시
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}
+
       # Deploy to AWS EC2
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@master
