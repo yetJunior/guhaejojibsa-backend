@@ -35,14 +35,14 @@ jobs:
           java-version: "17"
 
       - name : Set secret file (prod)
-        run : | 
-          touch ./api/src/main/resources/application-prod.yml
-          echo "${{secrets.APPLICATION_PROD}}" > ./api/src/main/resources/application-prod.yml
+        run : |
+          echo "${{ secrets.APPLICATION_PROD }}" > ./api/src/main/resources/application-prod.yml
+          chmod 600 ./api/src/main/resources/application-prod.yml
 
       - name : Set secret file (test)
-        run : | 
-          touch ./api/src/main/resources/application-test.yml
-          echo "${{secrets.APPLICATION_TEST}}" > ./api/src/main/resources/application-test.yml
+        run : |
+          echo "${{ secrets.APPLICATION_TEST }}" > ./api/src/main/resources/application-test.yml
+          chmod 600 ./api/src/main/resources/application-test.yml
 
       # (5) 현재 위치 파악하는 cmd
       - name: cmd
