@@ -42,7 +42,7 @@ class UserControllerTest {
 
         String body = new ObjectMapper().writeValueAsString(testDto);
 
-        mockMvc.perform(post("/api/user/signup")
+        mockMvc.perform(post("/api/auth/signup")
                         .content(body)
                         .contentType(APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());

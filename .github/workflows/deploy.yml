@@ -3,39 +3,29 @@
 name: Backend Deploy
 
 ## Controls when the workflow will run
-#on:
-#  # Triggers the workflow on push or pull request events but only for the "develop" branch
-#  push:
-#    branches: [ "main" ]
+on:
+  # Triggers the workflow on push or pull request events but only for the "develop" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 #
 #  # Allows you to run this workflow manually from the Actions tab
 #  workflow_dispatch:
-
-# 본인이 설정한 값을 여기서 채워넣습니다.
-# 리전, 버킷 이름, CodeDeploy 앱 이름, CodeDeploy 배포 그룹 이름
-env:
-  AWS_REGION: ap-northeast-2
-  S3_BUCKET_NAME: 1team-s3
-  S3_BUCKET_BACKEND: 1team-s3/build/backend
-  CODE_DEPLOY_APPLICATION_NAME: lookforbutler
-  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: lookforbutler-backend
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
+  build:
     name: Deploy Backend
     runs-on: ubuntu-latest
-    environment: production
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # (1) 기본 체크아웃
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          sparse-checkout: backend
 
       # (2) JDK 17 세팅
       - name: Set up JDK 17
@@ -44,78 +34,62 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      # (3) S3 application-prod.yml 세팅
-      - name: Download application-prod.yml
-        uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
-        with:
-          command: cp
-          source: ${{ secrets.S3_PROD_YML }}
-          destination: ./backend/api/src/main/resources
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
-          aws_region: ${{ secrets.AWS_REGION }}
+      - name: Set secret file (prod)
+        run: |
+          echo "${{ secrets.APPLICATION_PROD }}" | base64 --decode > ./api/src/main/resources/application-prod.yml
+          chmod 600 ./api/src/main/resources/application-prod.yml
 
-      # (4) S3 application-test.yml 세팅
-#      - name: Download application-test.yml
-#        uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
-#        with:
-#          command: cp
-#          source: ${{ secrets.S3_TEST_YML }}
-#          destination: ./backend/api/src/main/resources
-#          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY }}
-#          aws_secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
-#          aws_region: ${{ secrets.AWS_REGION }}
+      - name: Set secret file (test)
+        run: |
+          echo "${{ secrets.APPLICATION_TEST }}" base64 --decode > ./api/src/main/resources/application-test.yml
+          chmod 600 ./api/src/main/resources/application-test.yml
 
       # (5) 현재 위치 파악하는 cmd
       - name: cmd
         run: |
           pwd
           ls -la
-          # cd ./backend/api/src/main/resources
-          echo "ls ./backend/api/src/main/resources"
-          ls -la ./backend/api/src/main/resources
-          sudo chmod +x ./backend/api/src/main/resources/application-prod.yml
-          ls -la ./backend/api/src/main/resources
+          echo "ls ./api/src/main/resources"
+          ls -la ./api/src/main/resources
+          sudo chmod +x ./api/src/main/resources/application-prod.yml
+          ls -la ./api/src/main/resources
 
-      # (6) Gradle 세팅
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build -x test
-          build-root-directory: backend
+      # Grant execute permission to gradlew
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
 
-      # # (6) Grant execute permission to gradlew
-      # - name: Grant execute permission to gradlew
-      #   run: chmod +x ./backend/gradlew
-
-      # # (7) Gradle 빌드
-      # - name: Execute Gradle build
-      #   run: |
-      #     cd backend
-      #     ./gradlew test -i
-
-      # (7) AWS 인증 (IAM 사용자 Access Key, Secret Key 활용)
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      # (8) 빌드 결과물을 S3 버킷에 업로드
-      - name: Upload to AWS S3
+      # Spring Boot Build
+      - name: Spring Boot Build
         run: |
-          aws deploy push \
-            --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
-            --ignore-hidden-files \
-            --s3-location s3://$S3_BUCKET_NAME/build/backend/app.zip \
-            --source ./backend
+          ./gradlew clean build --exclude-task test -x asciidoctor
 
-      # (9) S3 버킷에 있는 파일을 대상으로 CodeDeploy 실행
-      - name: Deploy to AWS EC2 from S3
-        run: |
-          aws deploy create-deployment \
-            --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
-            --deployment-config-name CodeDeployDefault.AllAtOnce \
-            --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-            --s3-location bucket=$S3_BUCKET_NAME,key=build/backend/app.zip,bundleType=zip
+      # 도커 허브 로그인
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      # Build Docker image
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }} ./
+
+      # Docker Hub에 private 이미지로 푸시
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}
+
+      # Deploy to AWS EC2
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_HOST }} # EC2 인스턴스 퍼블릭 DNS
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.AWS_PRIVACY_KEY }} # pem 키
+          port: ${{ secrets.REMOTE_SSH_PORT }} # 접속포트
+          script: |
+            sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_PASSWORD }}"
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+            sudo docker stop ${{ secrets.DOCKERHUB_REPOSITORY }} || true
+            sudo docker rm ${{ secrets.DOCKERHUB_REPOSITORY }} || true
+            sudo docker image prune -a || y
+            sudo docker run -d -p 80:8080 -e SPRING_PROFILES_ACTIVE=prod --name ${{ secrets.DOCKERHUB_REPOSITORY }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest

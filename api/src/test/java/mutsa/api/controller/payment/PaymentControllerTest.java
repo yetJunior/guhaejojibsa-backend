@@ -11,6 +11,7 @@ import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.payment.PayType;
 import mutsa.common.domain.models.payment.Payment;
+import mutsa.common.domain.models.order.Order;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.order.OrderRepository;
@@ -72,7 +73,7 @@ class PaymentControllerTest {
     private User consumer;
     private Article article;
     private Payment payment;
-    private org.junit.jupiter.api.Order order;
+    private Order order;
 
     @BeforeAll
     public static void beforeAll() {

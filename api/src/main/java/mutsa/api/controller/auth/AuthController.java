@@ -2,11 +2,13 @@ package mutsa.api.controller.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.api.dto.LoginResponseDto;
 import mutsa.api.dto.auth.AccessTokenResponse;
 import mutsa.api.dto.auth.LoginRequest;
+import mutsa.api.dto.user.SignUpUserDto;
 import mutsa.api.service.user.UserService;
 import mutsa.common.exception.BusinessException;
 import mutsa.common.exception.ErrorCode;
@@ -22,32 +24,34 @@ import java.io.IOException;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+    //인증이 필요하지 않은 서비스들
 
     private final UserService userService;
 
-    @PostMapping("/auth/login")
+    @PostMapping("/signup")
+    public ResponseEntity<?> signUpUser(@RequestBody @Valid SignUpUserDto signUpDto) {
+        if (!signUpDto.getPassword().equals(signUpDto.getCheckPassword())) {
+            throw new BusinessException(ErrorCode.DIFFERENT_PASSWORD);
+        }
+        userService.signUp(signUpDto);
+        return new ResponseEntity<>("회원가입이 완료되었습니다.", HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(HttpServletRequest request, HttpServletResponse response, @Validated @RequestBody LoginRequest loginRequest) throws IOException {
         LoginResponseDto login = userService.login(request, response, loginRequest);
         return ResponseEntity.ok(login);
     }
 
-    @PostMapping("/auth/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        userService.logout(request, response);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
     /**
-     * 만료된 accessToken 재발급 기능
-     *
+     * 만료된 리프레시 토큰 재발급
      * @param request
-     * @param response
      * @return
      */
-    @PostMapping("/auth/token/refresh")
+    @PostMapping("/token/refresh")
     public ResponseEntity<AccessTokenResponse> reIssuerAccessToken(
             HttpServletRequest request
     ) {
