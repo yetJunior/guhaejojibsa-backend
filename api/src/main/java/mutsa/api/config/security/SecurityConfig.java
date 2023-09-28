@@ -47,7 +47,8 @@ public class SecurityConfig {
             "/swagger/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/api-docs/**"
+            "/api-docs/**",
+            "/**"
     };
 
 

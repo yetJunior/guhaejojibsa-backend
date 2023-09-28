@@ -28,15 +28,6 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> signUpUser(@RequestBody @Valid SignUpUserDto signUpDto) {
-        if (!signUpDto.getPassword().equals(signUpDto.getCheckPassword())) {
-            throw new BusinessException(ErrorCode.DIFFERENT_PASSWORD);
-        }
-        userService.signUp(signUpDto);
-        return new ResponseEntity<>("회원가입이 완료되었습니다.", HttpStatus.NO_CONTENT);
-    }
-
     @GetMapping("/info")
     public ResponseEntity<UserInfoDto> findUserInfo(@AuthenticationPrincipal CustomPrincipalDetails user) {
         if (user == null) {
