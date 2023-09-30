@@ -53,6 +53,7 @@ public class BootstrapDataLoader {
         admin.put("email", "mutsaproject@gmail.com");
         admin.put("image_url", "");
         admin.put("role", RoleStatus.ROLE_ADMIN);
+        admin.put("nickname", "admin_nick");
 
         loadUser(admin);
     }
@@ -124,7 +125,7 @@ public class BootstrapDataLoader {
         String email = (String) attributes.get("email");
         String imageUrl = (String) attributes.get("image_url");
         String password = (String) attributes.get("password");
-        String nickname = (String) attributes.get("password");
+        String nickname = (String) attributes.get("nickname");
 
         RoleStatus role = (RoleStatus) attributes.get("role");
         HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
@@ -223,6 +224,7 @@ public class BootstrapDataLoader {
         testUser1.put("email", "qwer@gmail.com");
         testUser1.put("image_url", "");
         testUser1.put("role", RoleStatus.ROLE_USER);
+        testUser1.put("nickname", "test-user1");
 
         return loadUser(testUser1);
     }
@@ -235,6 +237,7 @@ public class BootstrapDataLoader {
         testUser2.put("email", "asdf@gmail.com");
         testUser2.put("image_url", "");
         testUser2.put("role", RoleStatus.ROLE_USER);
+        testUser2.put("nickname", "test-user2");
 
         return loadUser(testUser2);
     }
@@ -246,7 +249,7 @@ public class BootstrapDataLoader {
                 "reporter1@gmail.com",
                 null,
                 null,
-                null
+                "ReportControllerTestUser1-nick"
         );
         reporter1 = userRepository.save(reporter1);
 
@@ -256,7 +259,7 @@ public class BootstrapDataLoader {
                 "reportedUser@gmail.com",
                 null,
                 null,
-                null
+                "ReportControllerTestUser2-nick"
         );
         reportedUser = userRepository.save(reportedUser);
 
