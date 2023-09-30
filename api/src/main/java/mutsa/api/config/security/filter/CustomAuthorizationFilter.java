@@ -40,16 +40,16 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
     private static final List<String> EXCLUDE_URL =
             List.of("/api/auth/token/refresh",
-                    "/auth/**",
-                    "/ws",
-                    "/oauth2/authorization/**,",
-                    "/api/articles",
-                    "/api/review/{reviewApiId}",
-                    "/api/article/{articleApiId}/review",
-                    "/v3/api-docs/**",
-                    "/configuration/**",
-                    "/webjars/**",
-                    "/swagger-ui/**"
+//                    "/auth/**",
+                    "/ws"
+//                    "/oauth2/authorization/**,",
+//                    "/api/articles",
+//                    "/api/review/{reviewApiId}",
+//                    "/api/article/{articleApiId}/review",
+//                    "/v3/api-docs/**",
+//                    "/configuration/**",
+//                    "/webjars/**",
+//                    "/swagger-ui/**"
                     );
 
     @Override
