@@ -55,13 +55,13 @@ public class ReviewModuleServiceTest {
     @BeforeEach
     public void init() {
 
-        reviewer1 = User.of("user1", "password", "email1@", "oauthName1", null, null);
+        reviewer1 = User.of("user1", "password", "email1@", "oauthName1", null, "user1");
         reviewer1 = userRepository.save(reviewer1);
 
-        reviewer2 = User.of("user2", "password", "email2@", "oauthName2", null, null);
+        reviewer2 = User.of("user2", "password", "email2@", "oauthName2", null, "user2");
         reviewer2 = userRepository.save(reviewer2);
 
-        User seller = User.of("seller", "password", "sellerEmail@", "sellerOauthName", null, null);
+        User seller = User.of("seller", "password", "sellerEmail@", "sellerOauthName", null, "seller");
         seller = userRepository.save(seller);
 
         article = Article.builder()

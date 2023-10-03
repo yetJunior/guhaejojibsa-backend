@@ -46,11 +46,11 @@ public class ArticleRepositoryTest {
 
     @BeforeEach
     public void init() {
-        user1 = User.of("ArticleRepositoryTestUser1", "1234", "user1@gmail.com", null, null, null);
+        user1 = User.of("ArticleRepositoryTestUser1", "1234", "user1@gmail.com", null, null, "ArticleRepositoryTestUser1");
 
         user1 = userRepository.save(user1);
 
-        user2 = User.of("ArticleRepositoryTestUser2", "1234", "user2@gmail.com", null, null, null);
+        user2 = User.of("ArticleRepositoryTestUser2", "1234", "user2@gmail.com", null, null, "ArticleRepositoryTestUser2");
 
         user2 = userRepository.save(user2);
 
