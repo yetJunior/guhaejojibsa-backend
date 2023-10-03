@@ -50,7 +50,7 @@ public class ArticleServiceTest {
 
     @BeforeEach
     public void init() {
-        user = User.of("ArticleServiceTestUser", "1234", "user1@gmail.com", null, null, null);
+        user = User.of("ArticleServiceTestUser", "1234", "user1@gmail.com", null, null, "ArticleServiceTestUser");
 
         user = userRepository.save(user);
 

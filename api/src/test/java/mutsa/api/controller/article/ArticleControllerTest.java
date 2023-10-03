@@ -97,7 +97,7 @@ public class ArticleControllerTest {
                 "articlecontrollertestuser1@gmail.com",
                 null,
                 null,
-                null
+                "ArticleControllerTestUser1"
         );
         user1 = userRepository.save(user1);
 
@@ -107,7 +107,7 @@ public class ArticleControllerTest {
                 "articlecontrollertestuser2@gmail.com",
                 null,
                 null,
-                null
+                "ArticleControllerTestUser2"
         );
         user2 = userRepository.save(user2);
 

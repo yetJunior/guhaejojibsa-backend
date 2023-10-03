@@ -92,7 +92,7 @@ class PaymentControllerTest {
     }
 
     private void initializeEntities() {
-        consumer = User.of("user2", "password", "email2@", "oauthName2", null, null);
+        consumer = User.of("user2", "password", "email2@", "oauthName2", null, "user2");
         consumer = userRepository.save(consumer);
 
         article = Article.builder()

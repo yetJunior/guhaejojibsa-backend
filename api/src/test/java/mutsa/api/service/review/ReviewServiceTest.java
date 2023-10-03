@@ -70,19 +70,19 @@ public class ReviewServiceTest {
 
     @BeforeEach
     public void init() {
-        reviewer1 = User.of("user1", "password", "email1@", "oauthName1", "", null);
+        reviewer1 = User.of("user1", "password", "email1@", "oauthName1", "", "user1");
         reviewer1 = userRepository.save(reviewer1);
 
-        reviewer2 = User.of("user2", "password", "email2@", "oauthName2", "", null);
+        reviewer2 = User.of("user2", "password", "email2@", "oauthName2", "", "user2");
         reviewer2 = userRepository.save(reviewer2);
 
-        reviewer3 = User.of("user3", "password", "email3@", "oauthName3", "", null);
+        reviewer3 = User.of("user3", "password", "email3@", "oauthName3", "", "user3");
         reviewer3 = userRepository.save(reviewer3);
 
-        reviewer4 = User.of("user4", "password", "email4@", "oauthName4", "", null);
+        reviewer4 = User.of("user4", "password", "email4@", "oauthName4", "", "user4");
         reviewer4 = userRepository.save(reviewer4);
 
-        User seller = User.of("seller", "password", "sellerEmail@", "sellerOauthName", "", null);
+        User seller = User.of("seller", "password", "sellerEmail@", "sellerOauthName", "", "seller");
         seller = userRepository.save(seller);
 
         article = Article.builder()

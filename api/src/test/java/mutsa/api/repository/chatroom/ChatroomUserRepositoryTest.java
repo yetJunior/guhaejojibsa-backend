@@ -35,8 +35,8 @@ class ChatroomUserRepositoryTest {
 
     @BeforeEach
     public void init() {
-        user1 = User.of("user1", "password", "email1@", "oauthName1", null, null);
-        user2 = User.of("seller2", "password", "seller2@", "seller2", null, null);
+        user1 = User.of("user1", "password", "email1@", "oauthName1", null, "user1");
+        user2 = User.of("seller2", "password", "seller2@", "seller2", null, "seller2");
         user1 = userRepository.save(user1);
         user2 = userRepository.save(user2);
 
