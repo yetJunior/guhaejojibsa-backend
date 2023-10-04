@@ -84,7 +84,7 @@ class PaymentModuleServiceTest {
     }
 
     private User createAndSaveUser(String username, String email, String oauthName) {
-        User user = User.of(username, "password", email, oauthName, null, null);
+        User user = User.of(username, "password", email, oauthName, null, username);
         return userRepository.save(user);
     }
 

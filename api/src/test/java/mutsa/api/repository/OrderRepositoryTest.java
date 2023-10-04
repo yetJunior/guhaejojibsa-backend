@@ -55,7 +55,7 @@ public class OrderRepositoryTest {
 
     @BeforeEach
     public void init() {
-        user = userRepository.save(User.of("user", "password", "email", "oauthName", null, null));
+        user = userRepository.save(User.of("user", "password", "email", "oauthName", null, "user"));
         when(userService.getByApiId(any())).thenReturn(user);
 
         article = articleRepository.save(Article.builder()
