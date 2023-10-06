@@ -1,7 +1,5 @@
 package mutsa.api.config.security.filter;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,20 +11,17 @@ import mutsa.api.config.security.CustomPrincipalDetails;
 import mutsa.api.util.JwtTokenProvider;
 import mutsa.api.util.JwtTokenProvider.JWTInfo;
 import mutsa.common.domain.models.user.User;
-import mutsa.common.exception.ErrorCode;
 import mutsa.common.exception.ErrorResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -38,27 +33,18 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String BEARER = "Bearer ";
 
-    private static final List<String> EXCLUDE_URL =
+    private final List<String> EXCLUDE_URL_LIST =
             List.of("/api/auth/token/refresh",
-//                    "/auth/**",
+                    "/api/auth/login",
                     "/ws"
-//                    "/oauth2/authorization/**,",
-//                    "/api/articles",
-//                    "/api/review/{reviewApiId}",
-//                    "/api/article/{articleApiId}/review",
-//                    "/v3/api-docs/**",
-//                    "/configuration/**",
-//                    "/webjars/**",
-//                    "/swagger-ui/**"
-                    );
+            );
+
+    private final HashSet<String> EXCLUDE_URL = new HashSet<>(EXCLUDE_URL_LIST);
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return EXCLUDE_URL
-                .stream()
-                .anyMatch(exclude
-                        -> exclude.equalsIgnoreCase(request.getServletPath()
-                ));
+        log.info("필터 타는지 확인 여부  : {}", request.getRequestURL());
+        return EXCLUDE_URL.contains(request.getRequestURI());
     }
 
     @Override
@@ -70,23 +56,13 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
             token = getToken(authorizationHeader);
         }
 
-        if (token != null) {
-            JWTInfo jwtInfo = null;
 
-            try {
-                jwtInfo = jwtTokenProvider.decodeToken(token);
-                log.info(jwtInfo.toString());
-            } catch (TokenExpiredException e) {
-                log.info("TokenExpiredException: ", e);
-                getAccessTokenExpired(response, ErrorResponse.of(ErrorCode.ACCESS_TOKEN_EXPIRED));
-            } catch (JWTVerificationException ignored) {
-                log.info("JWTVerificationException: ", ignored);
-            }
-
-            if (jwtInfo != null && jwtInfo.getAuthorities() != null) {
-                SecurityContextHolder.getContext()
-                        .setAuthentication(getAuthenticationToken(jwtInfo));
-            }
+        JWTInfo jwtInfo = null;
+        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+            jwtInfo = jwtTokenProvider.decodeToken(token);
+            SecurityContextHolder.getContext().setAuthentication(getAuthenticationToken(jwtInfo));
+        } else {
+            log.info("유효한 JWT토큰이 없습니다.");
         }
 
         filterChain.doFilter(request, response);
