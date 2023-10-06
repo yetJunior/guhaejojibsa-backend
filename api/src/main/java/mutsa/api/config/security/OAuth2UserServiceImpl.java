@@ -31,6 +31,7 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
             attributes.put("id", oAuth2User.getAttribute("id"));
             Map<String, Object> googleAttri = oAuth2User.getAttributes();
             attributes.put("email", (String) googleAttri.get("email"));
+            attributes.put("nickname", googleAttri.get("name"));
             String profilePictureUrl = (String) googleAttri.get("picture");
             attributes.put("picture", profilePictureUrl);
             nameAttribute = "email";

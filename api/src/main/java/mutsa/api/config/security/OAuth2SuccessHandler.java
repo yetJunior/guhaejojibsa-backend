@@ -51,11 +51,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // username: Email을 @ 기준으로 나누고, ID Provider(Naver) 같은 값을 추가하여 조치
         String email = oAuth2User.getAttribute("email");
         String provider = oAuth2User.getAttribute("provider");
+        String nickname = oAuth2User.getAttribute("nickname");
         String username = email.split("@")[0];
         String authName = String.format("{%s}%s", provider, username);
         String picture = oAuth2User.getAttribute("picture");
         boolean isNewUser = false;
 
+        log.info("nickName : {}", nickname);
         log.info("oauthName : {} ", authName);
 
         //이미 해당 이메일로 회원가입한 유저가 있는데 oauth로그인이 아닌경우
@@ -76,7 +78,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     username,
                     passwordEncoder.encode(email + "_" + provider),
                     passwordEncoder.encode(email + "_" + provider),
-                    username,
+                    nickname,
                     email,
                     "",
                     "",
@@ -107,7 +109,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 목적지 URL 설정
         // 우리 서비스의 Frontend 구성에 따라 유연하게 대처해야 한다.
-        String targetUrl = String.format("%s/oauth2-redirect?token=%s&&isNewUser=%s", frontendUrl,accessToken, isNewUser);
+        String targetUrl = String.format("%s/oauth2-redirect?token=%s&&isNewUser=%s", frontendUrl, accessToken, isNewUser);
 
         log.info("url : {}", targetUrl);
         // 실제 Redirect 응답 생성
