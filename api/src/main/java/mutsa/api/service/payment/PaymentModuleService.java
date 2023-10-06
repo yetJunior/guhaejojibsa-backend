@@ -1,6 +1,7 @@
 package mutsa.api.service.payment;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mutsa.api.config.common.CommonConfig;
 import mutsa.api.config.payment.TossPaymentConfig;
 import mutsa.api.dto.payment.PaymentDto;
@@ -9,12 +10,14 @@ import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
 import mutsa.common.domain.models.payment.Payment;
+import mutsa.common.domain.models.payment.Receipt;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.exception.BusinessException;
 import mutsa.common.exception.ErrorCode;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.order.OrderRepository;
 import mutsa.common.repository.payment.PaymentRepository;
+import mutsa.common.repository.payment.ReceiptRepository;
 import mutsa.common.repository.user.UserRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -39,6 +43,7 @@ public class PaymentModuleService {
     private final TossPaymentConfig tossPaymentConfig;
     private final ArticleRepository articleRepository;
     private final OrderRepository orderRepository;
+    private final ReceiptRepository receiptRepository;
     private final RestTemplate restTemplate;
 
     // 결제 요청을 위한 정보 생성 및 반환
@@ -57,6 +62,8 @@ public class PaymentModuleService {
     public PaymentSuccessDto tossPaymentSuccess(String paymentKey, String orderId, Long amount) {
         Payment payment = verifyPayment(orderId, amount);
         PaymentSuccessDto result = requestPaymentAccept(paymentKey, orderId, amount);
+        saveReceipt(result, payment);
+
         updatePaymentAfterSuccess(payment, paymentKey);
         return result;
     }
@@ -68,8 +75,7 @@ public class PaymentModuleService {
         Map<String, Object> params = new HashMap<>();
         params.put("orderId", orderId);
         params.put("amount", amount);
-        PaymentSuccessDto result = restTemplate.postForObject(TossPaymentConfig.URL + paymentKey, new HttpEntity<>(params, headers), PaymentSuccessDto.class);
-        return result;
+        return restTemplate.postForObject(TossPaymentConfig.URL + paymentKey, new HttpEntity<>(params, headers), PaymentSuccessDto.class);
     }
 
     // 결제 실패 로직
@@ -148,5 +154,31 @@ public class PaymentModuleService {
         Order order = findOrderByApiId(orderId);
         String redirectUrl = commonConfig.getFrontendUrl() + "/article/" + order.getArticle().getApiId() + "/order/" + orderId;
         return URI.create(redirectUrl);
+    }
+
+    // 영수증 저장
+    public Long saveReceipt(PaymentSuccessDto dto, Payment payment) {
+        Receipt receipt = Receipt.builder()
+                .payment(payment)
+                .mid(dto.getMid())
+                .version(dto.getVersion())
+                .paymentKey(dto.getPaymentKey())
+                .orderId(dto.getOrderId())
+                .orderName(dto.getOrderName())
+                .currency(dto.getCurrency())
+                .method(dto.getMethod())
+                .totalAmount(dto.getTotalAmount())
+                .balanceAmount(dto.getBalanceAmount())
+                .suppliedAmount(dto.getSuppliedAmount())
+                .vat(dto.getVat())
+                .status(dto.getStatus())
+                .requestedAt(dto.getRequestedAt())
+                .approvedAt(dto.getApprovedAt())
+                .useEscrow(dto.getUseEscrow())
+                .cultureExpense(dto.getCultureExpense())
+                .type(dto.getType())
+                .build();
+        receiptRepository.save(receipt);
+        return receipt.getReceiptId();
     }
 }
