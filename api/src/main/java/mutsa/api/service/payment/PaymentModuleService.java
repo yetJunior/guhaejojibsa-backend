@@ -5,10 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import mutsa.api.config.common.CommonConfig;
 import mutsa.api.config.payment.TossPaymentConfig;
 import mutsa.api.dto.payment.PaymentDto;
+import mutsa.api.dto.payment.PaymentSuccessCardDto;
 import mutsa.api.dto.payment.PaymentSuccessDto;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
+import mutsa.common.domain.models.payment.CardReceipt;
 import mutsa.common.domain.models.payment.Payment;
 import mutsa.common.domain.models.payment.Receipt;
 import mutsa.common.domain.models.user.User;
@@ -16,6 +18,7 @@ import mutsa.common.exception.BusinessException;
 import mutsa.common.exception.ErrorCode;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.order.OrderRepository;
+import mutsa.common.repository.payment.CardReceiptRepository;
 import mutsa.common.repository.payment.PaymentRepository;
 import mutsa.common.repository.payment.ReceiptRepository;
 import mutsa.common.repository.user.UserRepository;
@@ -44,6 +47,7 @@ public class PaymentModuleService {
     private final ArticleRepository articleRepository;
     private final OrderRepository orderRepository;
     private final ReceiptRepository receiptRepository;
+    private final CardReceiptRepository cardReceiptRepository;
     private final RestTemplate restTemplate;
 
     // 결제 요청을 위한 정보 생성 및 반환
@@ -179,6 +183,25 @@ public class PaymentModuleService {
                 .type(dto.getType())
                 .build();
         receiptRepository.save(receipt);
+        saveCardReceipt(dto.getCard(), receipt);
         return receipt.getReceiptId();
+    }
+
+    // 카드 영수증 저장
+    public Long saveCardReceipt(PaymentSuccessCardDto dto, Receipt receipt) {
+        CardReceipt cardReceipt = CardReceipt.builder()
+                .receipt(receipt)
+                .company(dto.getCompany())
+                .number(dto.getNumber())
+                .installmentPlanMonths(dto.getInstallmentPlanMonths())
+                .approveNo(dto.getApproveNo())
+                .useCardPoint(dto.getUseCardPoint())
+                .cardType(dto.getCardType())
+                .ownerType(dto.getOwnerType())
+                .acquireStatus(dto.getAcquireStatus())
+                .receiptUrl(dto.getReceiptUrl())
+                .build();
+        cardReceiptRepository.save(cardReceipt);
+        return cardReceipt.getCardReceiptId();
     }
 }
