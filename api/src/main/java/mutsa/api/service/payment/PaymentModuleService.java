@@ -66,8 +66,15 @@ public class PaymentModuleService {
     public PaymentSuccessDto tossPaymentSuccess(String paymentKey, String orderId, Long amount) {
         Payment payment = verifyPayment(orderId, amount);
         PaymentSuccessDto result = requestPaymentAccept(paymentKey, orderId, amount);
-        saveReceipt(result, payment);
 
+        if (result == null) {
+            log.error("결제 진행 중, 외부 API로의 요청을 실패하였습니다.");
+            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        log.info("결제 성공 - 주문 ID : " + result.getOrderId());
+
+        saveReceipt(result, payment);
         updatePaymentAfterSuccess(payment, paymentKey);
         return result;
     }
@@ -79,7 +86,13 @@ public class PaymentModuleService {
         Map<String, Object> params = new HashMap<>();
         params.put("orderId", orderId);
         params.put("amount", amount);
-        return restTemplate.postForObject(TossPaymentConfig.URL + paymentKey, new HttpEntity<>(params, headers), PaymentSuccessDto.class);
+
+        try {
+            return restTemplate.postForObject(TossPaymentConfig.URL + paymentKey, new HttpEntity<>(params, headers), PaymentSuccessDto.class);
+        } catch (Exception ex) {
+            log.error("결제 과정에서 외부 API로의 요청을 실패하였습니다.", ex);
+            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+        }
     }
 
     // 결제 실패 로직
@@ -160,9 +173,18 @@ public class PaymentModuleService {
         return URI.create(redirectUrl);
     }
 
-    // 영수증 저장
-    public Long saveReceipt(PaymentSuccessDto dto, Payment payment) {
-        Receipt receipt = Receipt.builder()
+    // 영수증 저장 (카드 영수증 포함)
+    public void saveReceipt(PaymentSuccessDto dto, Payment payment) {
+        Receipt receipt = createReceiptFromDto(dto, payment);
+        receiptRepository.save(receipt);
+
+        CardReceipt cardReceipt = createCardReceiptFromDto(dto.getCard(), receipt);
+        cardReceiptRepository.save(cardReceipt);
+    }
+
+    // 영수증 엔티티 생성
+    private Receipt createReceiptFromDto(PaymentSuccessDto dto, Payment payment) {
+        return Receipt.builder()
                 .payment(payment)
                 .mid(dto.getMid())
                 .version(dto.getVersion())
@@ -182,14 +204,11 @@ public class PaymentModuleService {
                 .cultureExpense(dto.getCultureExpense())
                 .type(dto.getType())
                 .build();
-        receiptRepository.save(receipt);
-        saveCardReceipt(dto.getCard(), receipt);
-        return receipt.getReceiptId();
     }
 
-    // 카드 영수증 저장
-    public Long saveCardReceipt(PaymentSuccessCardDto dto, Receipt receipt) {
-        CardReceipt cardReceipt = CardReceipt.builder()
+    // 카드 영수증 엔티티 생성
+    private CardReceipt createCardReceiptFromDto(PaymentSuccessCardDto dto, Receipt receipt) {
+        return CardReceipt.builder()
                 .receipt(receipt)
                 .company(dto.getCompany())
                 .number(dto.getNumber())
@@ -201,7 +220,5 @@ public class PaymentModuleService {
                 .acquireStatus(dto.getAcquireStatus())
                 .receiptUrl(dto.getReceiptUrl())
                 .build();
-        cardReceiptRepository.save(cardReceipt);
-        return cardReceipt.getCardReceiptId();
     }
 }
