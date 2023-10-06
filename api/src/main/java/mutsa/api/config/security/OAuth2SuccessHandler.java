@@ -44,18 +44,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
-        // OAuth2UserServiceImpl에서 반환한 DefaultOAuth2User가 저장된다.
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // 소셜 로그인을 한 새로운 사용자를 우리의 UserEntity로 전환하기 위한 작업
-        // username: Email을 @ 기준으로 나누고, ID Provider(Naver) 같은 값을 추가하여 조치
-        String email = oAuth2User.getAttribute("email");
+        boolean isNewUser = false;
         String provider = oAuth2User.getAttribute("provider");
+        String email = oAuth2User.getAttribute("email");
         String nickname = oAuth2User.getAttribute("nickname");
         String username = email.split("@")[0];
         String authName = String.format("{%s}%s", provider, username);
         String picture = oAuth2User.getAttribute("picture");
-        boolean isNewUser = false;
 
         log.info("nickName : {}", nickname);
         log.info("oauthName : {} ", authName);
@@ -65,7 +62,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             log.warn("유저가 이미 해당 이메일로 가입한 이력이 존재합니다.");
             response.setContentType("text/html; charset=utf-8");
             PrintWriter out = response.getWriter();
-            out.println("<script>alert('이미 회원가입한 이메일 입니다.'); location.href='http://localhost:3000' </script>");
+            out.printf("<script>alert('이미 회원가입한 이메일 입니다.'); location.href='%s';</script>", frontendUrl);
             out.flush();
             return;
         }
