@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import mutsa.api.config.security.CustomPrincipalDetails;
+import mutsa.api.dto.user.EmailChangeDto;
 import mutsa.api.dto.user.Oauth2InfoUserDto;
 import mutsa.api.dto.user.PasswordChangeDto;
 import mutsa.api.service.user.UserService;
@@ -56,7 +57,7 @@ public class UserController {
 
     @PatchMapping("/email")
     @PreAuthorize("hasAuthority('user.update')")
-    public ResponseEntity updateEmail(@AuthenticationPrincipal UserDetails user, @RequestBody String email) {
+    public ResponseEntity updateEmail(@AuthenticationPrincipal UserDetails user, @RequestBody EmailChangeDto email) {
         userService.updateEmail(user, email);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }

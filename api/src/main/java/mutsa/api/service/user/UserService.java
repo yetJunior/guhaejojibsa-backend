@@ -10,10 +10,7 @@ import mutsa.api.config.security.CustomPrincipalDetails;
 import mutsa.api.dto.LoginResponseDto;
 import mutsa.api.dto.auth.AccessTokenResponse;
 import mutsa.api.dto.auth.LoginRequest;
-import mutsa.api.dto.user.Oauth2InfoUserDto;
-import mutsa.api.dto.user.PasswordChangeDto;
-import mutsa.api.dto.user.SignUpOAuth2UserDto;
-import mutsa.api.dto.user.SignUpUserDto;
+import mutsa.api.dto.user.*;
 import mutsa.api.util.CookieUtil;
 import mutsa.api.util.JwtTokenProvider;
 import mutsa.api.util.JwtTokenProvider.JWTInfo;
@@ -158,13 +155,11 @@ public class UserService {
     public void changePassword(CustomPrincipalDetails user, PasswordChangeDto passwordChangeDto) {
         User findUser = findUsername(user.getUsername());
 
-        isSameCurrentPassword(passwordChangeDto, findUser);
-        if (!isSamePassword(passwordChangeDto.getNewPassword(),
-                passwordChangeDto.getNewPasswordCheck())) {
+        if (!bCryptPasswordEncoder.matches(passwordChangeDto.getPassword(), findUser.getPassword())) {
             throw new BusinessException(ErrorCode.DIFFERENT_PASSWORD);
         }
 
-        if (isSamePassword(passwordChangeDto.getPassword(), passwordChangeDto.getNewPassword())) {
+        if (passwordChangeDto.getPassword().equals(passwordChangeDto.getNewPassword())) {
             throw new BusinessException(ErrorCode.SAME_PASSOWRD);
         }
 
@@ -219,24 +214,15 @@ public class UserService {
     }
 
     @Transactional
-    public void updateEmail(UserDetails userDetails, String email) {
+    public void updateEmail(UserDetails userDetails, EmailChangeDto email) {
         User findUser = findUsername(userDetails.getUsername());
-
-        findUser.updateEmail(email);
+        findUser.updateEmail(email.getEmail());
     }
 
     @Transactional
     public void updateAddress(UserDetails userDetails, Address address) {
         User findUser = findUsername(userDetails.getUsername());
-
         findUser.updateAddress(address);
-    }
-
-    private void isSameCurrentPassword(PasswordChangeDto passwordChangeDto, User findUser) {
-        if (!findUser.getPassword()
-                .equals(encodedPassword(passwordChangeDto.getPassword()))) {
-            throw new BusinessException(ErrorCode.DIFFERENT_PASSWORD);
-        }
     }
 
     public boolean isDuplicateEmail(String email) {
@@ -258,14 +244,6 @@ public class UserService {
 
         return byEmail.isEmpty() ||
                 (byEmail.get().getIsOAuth2() && byEmail.get().getIsAvailable());
-    }
-
-    private String encodedPassword(String password) {
-        return bCryptPasswordEncoder.encode(password);
-    }
-
-    private boolean isSamePassword(String password, String newPassword) {
-        return password.equals(newPassword);
     }
 
     private User fromJwtInfo(JWTInfo jwtInfo) {
