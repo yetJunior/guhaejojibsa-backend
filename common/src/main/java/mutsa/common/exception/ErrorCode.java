@@ -55,6 +55,8 @@ public enum ErrorCode {
     PAYMENT_INVALID_AMOUNT(HttpStatus.BAD_REQUEST.value(), "PAYMENT_INVALID_AMOUNT", "옳지 않은 결제 금액입니다."),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "PAYMENT_NOT_FOUND", "해당 결제 정보를 찾을 수 없습니다."),
     PAYMENT_ALREADY_APPROVED(HttpStatus.BAD_REQUEST.value(), "PAYMENT_ALREADY_APPROVED", "이미 인가된 결제입니다."),
+    RECEIPT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "RECEIPT_NOT_FOUND", "해당 영수증 정보를 찾을 수 없습니다."),
+    CARD_RECEIPT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "CARD_RECEIPT_NOT_FOUND", "해당 카드 영수증 정보를 찾을 수 없습니다."),
 
     // chat
     CHAT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "CHAT_NOTFOUND","해당 채팅을 찾지 못했습니다." ),
