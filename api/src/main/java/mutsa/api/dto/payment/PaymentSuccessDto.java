@@ -1,8 +1,10 @@
 package mutsa.api.dto.payment;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class PaymentSuccessDto {
     String mid;             // 가맹점 ID. 고유 식별자
     String version;         // API 버전

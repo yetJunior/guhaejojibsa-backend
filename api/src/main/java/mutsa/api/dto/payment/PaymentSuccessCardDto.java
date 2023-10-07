@@ -1,8 +1,10 @@
 package mutsa.api.dto.payment;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class PaymentSuccessCardDto {
     String company; // 회사명
     String number; // 카드번호
