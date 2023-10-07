@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
 import mutsa.common.domain.models.BaseTimeEntity;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
@@ -41,7 +40,7 @@ public class User extends BaseTimeEntity implements Serializable {
     private String username;
 
     @Column(nullable = false, unique = true)
-    private String  nickname;
+    private String nickname;
 
     @Column(nullable = false)
     private String password;
@@ -69,9 +68,8 @@ public class User extends BaseTimeEntity implements Serializable {
     @Column(nullable = false, length = 2)
     private Boolean isOAuth2 = false;
 
-    @Builder.Default
     @Column(nullable = false, length = 2)
-    private Boolean isAvailable = true;
+    private Boolean isAvailable;
 
 
     @Singular
@@ -118,7 +116,7 @@ public class User extends BaseTimeEntity implements Serializable {
     }
 
     public static User of(String username, String encodedPassword, String email,
-                          String oauth2Username, String imageUrl,String nickname) {
+                          String oauth2Username, String imageUrl, String nickname) {
 
         User user = User.builder()
                 .username(username)
@@ -127,6 +125,7 @@ public class User extends BaseTimeEntity implements Serializable {
                 .oauth2Username(oauth2Username == null ? "" : oauth2Username)
                 .imageUrl(StringUtils.hasText(imageUrl) ? imageUrl : "")
                 .nickname(nickname)
+                .isAvailable(true)
                 .build();
         return user;
     }
@@ -142,6 +141,7 @@ public class User extends BaseTimeEntity implements Serializable {
                 .oAuth2Type(oauthType)
                 .imageUrl(StringUtils.hasText(imageUrl) ? imageUrl : "")
                 .isOAuth2(true)
+                .isAvailable(false) //부가 정보 인증 전까지 false
                 .nickname(nickname)
                 .build();
 
@@ -150,5 +150,9 @@ public class User extends BaseTimeEntity implements Serializable {
 
     public void updateAddress(Address address) {
         this.address = address;
+    }
+
+    public void setAvailable() {
+        this.isAvailable = true;
     }
 }

@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mutsa.api.dto.user.SignUpUserDto;
+import mutsa.api.dto.user.SignUpOAuth2UserDto;
 import mutsa.api.service.user.CustomUserDetailsService;
 import mutsa.api.service.user.UserService;
 import mutsa.api.util.CookieUtil;
@@ -57,31 +57,28 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         log.info("nickName : {}", nickname);
         log.info("oauthName : {} ", authName);
 
-        //이미 해당 이메일로 회원가입한 유저가 있는데 oauth로그인이 아닌경우
-        if (userService.existUserByEmail(email) && !userService.isOauthUser(email)) {
-            log.warn("유저가 이미 해당 이메일로 가입한 이력이 존재합니다.");
-            response.setContentType("text/html; charset=utf-8");
-            PrintWriter out = response.getWriter();
-            out.printf("<script>alert('이미 회원가입한 이메일 입니다.'); location.href='%s';</script>", frontendUrl);
-            out.flush();
-            return;
-        }
-
-        // 처음으로 소셜 로그인한 사용자를 데이터베이스에 등록
-        if (!userService.existUserByEmail(email)) {
+        if (userService.isNewOauth2User(email)) {
+            //새로운 유저인 경우
             isNewUser = true;
-            //전화번호랑 ,도로
-            userService.signUp(new SignUpUserDto(
+            userService.signUp(new SignUpOAuth2UserDto(
                     username,
                     passwordEncoder.encode(email + "_" + provider),
                     passwordEncoder.encode(email + "_" + provider),
                     nickname,
                     email,
-                    "",
-                    "",
-                    "",
-                    ""
-            ), authName, picture, OAuth2Type.valueOf(provider.toUpperCase()));
+                    authName,
+                    picture,
+                    OAuth2Type.valueOf(provider.toUpperCase())));
+        } else if (userService.isDuplicateEmail(email)) {
+            //oauth가 아닌데 중복된 이메일이 있는 경우
+            log.warn("유저가 이미 해당 이메일로 가입한 이력이 존재합니다.");
+            response.setContentType("text/html; charset=utf-8");
+            PrintWriter out = response.getWriter();
+            out.printf("<script>alert('이미 회원가입한 이메일 입니다.'); location.href='%s';</script>", frontendUrl);
+            out.flush();
+        } else if (!userService.isAvailableUser(email)) {
+            //추가 정보를 입력하지 않은 유저의 경우
+            isNewUser = true;
         }
 
         // 데이터베이스에서 사용자 회수

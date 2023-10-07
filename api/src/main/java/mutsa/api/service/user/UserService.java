@@ -10,8 +10,9 @@ import mutsa.api.config.security.CustomPrincipalDetails;
 import mutsa.api.dto.LoginResponseDto;
 import mutsa.api.dto.auth.AccessTokenResponse;
 import mutsa.api.dto.auth.LoginRequest;
+import mutsa.api.dto.user.Oauth2InfoUserDto;
 import mutsa.api.dto.user.PasswordChangeDto;
-import mutsa.api.dto.user.SignUpOauthUserDto;
+import mutsa.api.dto.user.SignUpOAuth2UserDto;
 import mutsa.api.dto.user.SignUpUserDto;
 import mutsa.api.util.CookieUtil;
 import mutsa.api.util.JwtTokenProvider;
@@ -21,7 +22,6 @@ import mutsa.common.domain.models.user.RoleStatus;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.domain.models.user.UserRole;
 import mutsa.common.domain.models.user.embedded.Address;
-import mutsa.common.domain.models.user.embedded.OAuth2Type;
 import mutsa.common.dto.user.UserInfoDto;
 import mutsa.common.exception.BusinessException;
 import mutsa.common.exception.ErrorCode;
@@ -77,7 +77,7 @@ public class UserService {
     }
 
     @Transactional
-    public void signUp(SignUpUserDto signUpUserDto, String oauthName, String picture, OAuth2Type oAuth2Type) {
+    public void signUp(SignUpOAuth2UserDto signUpUserDto) {
         //추후에 oauth전용으로 따로 만들어서 관리해야함
         Optional<User> user = userRepository.findByUsername(signUpUserDto.getUsername());
         if (user.isPresent()) {
@@ -85,10 +85,9 @@ public class UserService {
         }
         signUpUserDto.setPassword(bCryptPasswordEncoder.encode(signUpUserDto.getPassword()));
 
-        User newUser = SignUpUserDto.from(signUpUserDto, oauthName, picture, oAuth2Type);
+        User newUser = SignUpOAuth2UserDto.from(signUpUserDto);
         Role role = roleRepository.findByValue(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
-
         UserRole userRole = UserRole.of(newUser, role);
         userRole.addUser(newUser);
 
@@ -132,18 +131,12 @@ public class UserService {
     }
 
     @Transactional
-    public void signUpAuth(CustomPrincipalDetails customPrincipalDetails, SignUpOauthUserDto signupAuthUserDto) {
+    public void signupOauth(CustomPrincipalDetails customPrincipalDetails, Oauth2InfoUserDto signupAuthUserDto) {
         User user = userModuleService.getByUsername(customPrincipalDetails.getUsername());
         Address address = Address.of(signupAuthUserDto.getZipcode(), signupAuthUserDto.getCity(), signupAuthUserDto.getStreet());
         user.updateAddress(address);
-        //전화번호 추가
+        user.setAvailable();
     }
-
-//    public UserInfoDto findUserInfo(String username) {
-//        UserInfoDto userInfo = userRepository.findUserInfo(username);
-//        System.out.println(userInfo.toString());
-//        return userInfo;
-//    }
 
     public UserInfoDto findUserInfo(String username) {
         log.info("findUserInfo {}", username);
@@ -218,10 +211,6 @@ public class UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE));
     }
 
-    public boolean existUserByEmail(String email) {
-        return userRepository.findByEmail(email).isPresent();
-    }
-
     @Transactional
     public void updateImageUrl(UserDetails userDetails, String raw) {
         User user = findUsername(userDetails.getUsername());
@@ -250,9 +239,25 @@ public class UserService {
         }
     }
 
-    public boolean isOauthUser(String email) {
-        return userRepository.findByEmail(email).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))
-                .getIsOAuth2();
+    public boolean isDuplicateEmail(String email) {
+        //oauth 가 아닌 개인 계정으로 해당 이메일을 사용할떄
+        Optional<User> byEmail = userModuleService.getByEmail(email);
+        return byEmail.isPresent() && !byEmail.get().getIsOAuth2();
+    }
+
+    public boolean isNewOauth2User(String email) {
+        //이미 중복된 유저 이메일이 있는 경우, oauth2 로그인을 한적이 있는 경우인데 정보가 추가로 필요한 경우
+        Optional<User> byEmail = userModuleService.getByEmail(email);
+
+        return byEmail.isEmpty();
+    }
+
+    public boolean isAvailableUser(String email) {
+        //이미 중복된 유저 이메일이 있는 경우, oauth2 로그인을 한적이 있는 경우인데 정보가 추가로 필요한 경우
+        Optional<User> byEmail = userModuleService.getByEmail(email);
+
+        return byEmail.isEmpty() ||
+                (byEmail.get().getIsOAuth2() && byEmail.get().getIsAvailable());
     }
 
     private String encodedPassword(String password) {
