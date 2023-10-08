@@ -7,6 +7,7 @@ import mutsa.api.ApiApplication;
 import mutsa.api.config.TestRedisConfiguration;
 import mutsa.api.config.payment.TossPaymentConfig;
 import mutsa.api.dto.payment.PaymentDto;
+import mutsa.api.dto.payment.PaymentSuccessCardDto;
 import mutsa.api.dto.payment.PaymentSuccessDto;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
@@ -32,6 +33,8 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.mockStatic;
@@ -139,7 +142,8 @@ class PaymentModuleServiceTest {
     }
 
     private void mockExternalPaymentApi(String orderId, Long amount) {
-        PaymentSuccessDto expectedResponse = new PaymentSuccessDto();
+        PaymentSuccessDto expectedResponse = createMockedPaymentSuccessDto(orderId, amount);
+
         try {
             mockServer.expect(ExpectedCount.once(),
                             requestTo(TossPaymentConfig.URL + "somePaymentKey"))
@@ -148,7 +152,43 @@ class PaymentModuleServiceTest {
                             new ObjectMapper().writeValueAsString(expectedResponse),
                             MediaType.APPLICATION_JSON));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error mocking external payment API", e);
+            throw new RuntimeException("외부 결제 API 모킹 중 에러 발생", e);
         }
+    }
+
+    private PaymentSuccessDto createMockedPaymentSuccessDto(String orderId, Long amount) {
+        PaymentSuccessDto dto = new PaymentSuccessDto();
+        dto.setVersion("v1");
+        dto.setPaymentKey("samplePaymentKey");
+        dto.setOrderId(orderId);
+        dto.setOrderName("Sample Order");
+        dto.setCurrency("KRW");
+        dto.setMethod("CARD");
+        dto.setTotalAmount(amount.toString());
+        dto.setBalanceAmount("0");
+        dto.setSuppliedAmount("45000");
+        dto.setVat("5000");
+        dto.setStatus("APPROVED");
+        dto.setRequestedAt(LocalDateTime.now().toString());
+        dto.setApprovedAt(LocalDateTime.now().plusMinutes(1).toString());
+        dto.setUseEscrow("N");
+        dto.setCultureExpense("N");
+        dto.setType("PAYMENT");
+        dto.setCard(createMockedCardDto());
+        return dto;
+    }
+
+    private PaymentSuccessCardDto createMockedCardDto() {
+        PaymentSuccessCardDto cardDto = new PaymentSuccessCardDto();
+        cardDto.setCompany("Visa");
+        cardDto.setNumber("1234-5678-1234-5678");
+        cardDto.setInstallmentPlanMonths("1");
+        cardDto.setApproveNo("123456");
+        cardDto.setUseCardPoint("N");
+        cardDto.setCardType("CREDIT");
+        cardDto.setOwnerType("PERSONAL");
+        cardDto.setAcquireStatus("APPROVED");
+        cardDto.setReceiptUrl("https://example.com/receipt");
+        return cardDto;
     }
 }

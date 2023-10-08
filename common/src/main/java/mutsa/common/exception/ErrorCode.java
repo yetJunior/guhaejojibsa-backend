@@ -15,6 +15,7 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED.value(), "C005", " 요청메서드가 허용되지 않습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "C006", "서버에서 오류가 발생했습니다."),
     HANDLE_ACCESS_DENIED(HttpStatus.FORBIDDEN.value(), "C007", "권한이 없습니다."),
+    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY.value(), "EXTERNAL_API_ERROR", "외부 API로의 요청이 실패하였습니다."),
 
     // auth
     ACCESS_TOKEN_EXPIRED(HttpStatus.FORBIDDEN.value(), "A001", "토큰이 만료되었습니다."),
@@ -54,7 +55,10 @@ public enum ErrorCode {
     PAYMENT_INVALID_AMOUNT(HttpStatus.BAD_REQUEST.value(), "PAYMENT_INVALID_AMOUNT", "옳지 않은 결제 금액입니다."),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "PAYMENT_NOT_FOUND", "해당 결제 정보를 찾을 수 없습니다."),
     PAYMENT_ALREADY_APPROVED(HttpStatus.BAD_REQUEST.value(), "PAYMENT_ALREADY_APPROVED", "이미 인가된 결제입니다."),
+    RECEIPT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "RECEIPT_NOT_FOUND", "해당 영수증 정보를 찾을 수 없습니다."),
+    CARD_RECEIPT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "CARD_RECEIPT_NOT_FOUND", "해당 카드 영수증 정보를 찾을 수 없습니다."),
 
+    // chat
     CHAT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "CHAT_NOTFOUND","해당 채팅을 찾지 못했습니다." ),
     INVALID_ROOM_REQUEST(HttpStatus.BAD_REQUEST.value(), "INVALID_REQUEST", "자신의 글에 채팅방을 만들 수 없습니다." ),
     CHATROOM_PERMISSION_DENIED(HttpStatus.FORBIDDEN.value(), "CRR001", "접근권한이 없는 채팅방 입니다." ),

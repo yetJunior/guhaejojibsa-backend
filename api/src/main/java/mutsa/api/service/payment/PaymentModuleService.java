@@ -1,20 +1,26 @@
 package mutsa.api.service.payment;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mutsa.api.config.common.CommonConfig;
 import mutsa.api.config.payment.TossPaymentConfig;
 import mutsa.api.dto.payment.PaymentDto;
+import mutsa.api.dto.payment.PaymentSuccessCardDto;
 import mutsa.api.dto.payment.PaymentSuccessDto;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
+import mutsa.common.domain.models.payment.CardReceipt;
 import mutsa.common.domain.models.payment.Payment;
+import mutsa.common.domain.models.payment.Receipt;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.exception.BusinessException;
 import mutsa.common.exception.ErrorCode;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.order.OrderRepository;
+import mutsa.common.repository.payment.CardReceiptRepository;
 import mutsa.common.repository.payment.PaymentRepository;
+import mutsa.common.repository.payment.ReceiptRepository;
 import mutsa.common.repository.user.UserRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +36,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -39,6 +46,8 @@ public class PaymentModuleService {
     private final TossPaymentConfig tossPaymentConfig;
     private final ArticleRepository articleRepository;
     private final OrderRepository orderRepository;
+    private final ReceiptRepository receiptRepository;
+    private final CardReceiptRepository cardReceiptRepository;
     private final RestTemplate restTemplate;
 
     // 결제 요청을 위한 정보 생성 및 반환
@@ -57,6 +66,15 @@ public class PaymentModuleService {
     public PaymentSuccessDto tossPaymentSuccess(String paymentKey, String orderId, Long amount) {
         Payment payment = verifyPayment(orderId, amount);
         PaymentSuccessDto result = requestPaymentAccept(paymentKey, orderId, amount);
+
+        if (result == null) {
+            log.error("결제 진행 중, 외부 API로의 요청을 실패하였습니다.");
+            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        log.info("결제 성공 - 주문 ID : " + result.getOrderId());
+
+        saveReceipt(result, payment);
         updatePaymentAfterSuccess(payment, paymentKey);
         return result;
     }
@@ -68,8 +86,13 @@ public class PaymentModuleService {
         Map<String, Object> params = new HashMap<>();
         params.put("orderId", orderId);
         params.put("amount", amount);
-        PaymentSuccessDto result = restTemplate.postForObject(TossPaymentConfig.URL + paymentKey, new HttpEntity<>(params, headers), PaymentSuccessDto.class);
-        return result;
+
+        try {
+            return restTemplate.postForObject(TossPaymentConfig.URL + paymentKey, new HttpEntity<>(params, headers), PaymentSuccessDto.class);
+        } catch (Exception ex) {
+            log.error("결제 과정에서 외부 API로의 요청을 실패하였습니다.", ex);
+            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+        }
     }
 
     // 결제 실패 로직
@@ -148,5 +171,54 @@ public class PaymentModuleService {
         Order order = findOrderByApiId(orderId);
         String redirectUrl = commonConfig.getFrontendUrl() + "/article/" + order.getArticle().getApiId() + "/order/" + orderId;
         return URI.create(redirectUrl);
+    }
+
+    // 영수증 저장 (카드 영수증 포함)
+    public void saveReceipt(PaymentSuccessDto dto, Payment payment) {
+        Receipt receipt = createReceiptFromDto(dto, payment);
+        receiptRepository.save(receipt);
+
+        CardReceipt cardReceipt = createCardReceiptFromDto(dto.getCard(), receipt);
+        cardReceiptRepository.save(cardReceipt);
+    }
+
+    // 영수증 엔티티 생성
+    private Receipt createReceiptFromDto(PaymentSuccessDto dto, Payment payment) {
+        return Receipt.builder()
+                .payment(payment)
+                .mid(dto.getMid())
+                .version(dto.getVersion())
+                .paymentKey(dto.getPaymentKey())
+                .orderId(dto.getOrderId())
+                .orderName(dto.getOrderName())
+                .currency(dto.getCurrency())
+                .method(dto.getMethod())
+                .totalAmount(dto.getTotalAmount())
+                .balanceAmount(dto.getBalanceAmount())
+                .suppliedAmount(dto.getSuppliedAmount())
+                .vat(dto.getVat())
+                .status(dto.getStatus())
+                .requestedAt(dto.getRequestedAt())
+                .approvedAt(dto.getApprovedAt())
+                .useEscrow(dto.getUseEscrow())
+                .cultureExpense(dto.getCultureExpense())
+                .type(dto.getType())
+                .build();
+    }
+
+    // 카드 영수증 엔티티 생성
+    private CardReceipt createCardReceiptFromDto(PaymentSuccessCardDto dto, Receipt receipt) {
+        return CardReceipt.builder()
+                .receipt(receipt)
+                .company(dto.getCompany())
+                .number(dto.getNumber())
+                .installmentPlanMonths(dto.getInstallmentPlanMonths())
+                .approveNo(dto.getApproveNo())
+                .useCardPoint(dto.getUseCardPoint())
+                .cardType(dto.getCardType())
+                .ownerType(dto.getOwnerType())
+                .acquireStatus(dto.getAcquireStatus())
+                .receiptUrl(dto.getReceiptUrl())
+                .build();
     }
 }
