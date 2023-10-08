@@ -4,9 +4,12 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.Instant;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import mutsa.api.config.security.CustomPrincipalDetails;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,14 +34,12 @@ public class JwtTokenProvider {
     private final JwtConfig jwtConfig;
 
     public String createAccessToken(HttpServletRequest request, CustomPrincipalDetails details) {
-//        Date expiresAt = new Date(System.currentTimeMillis() + (Integer.parseInt(jwtConfig.getAccessTokenExpire()) * 1000L));
 
         return BEARER + JWT.create()
                 .withSubject(details.getUsername())
                 .withIssuer(request.getRequestURI().toString())
                 .withIssuedAt(Date.from(Instant.now()))
                 .withExpiresAt(Date.from(Instant.now().plusSeconds(Long.parseLong(jwtConfig.getAccessTokenExpire()))))
-//                .withExpiresAt(expiresAt)
                 .withClaim(AUTHORITIES, getAuthorities(details.getAuthorities())) //이게 없으면 에러가 발생한다(CustomAuthorizationFilter)
                 .sign(jwtConfig.getEncodedSecretKey());
     }
@@ -48,7 +50,6 @@ public class JwtTokenProvider {
                 .withIssuer(request.getRequestURI().toString())
                 .withIssuedAt(Date.from(Instant.now()))
                 .withExpiresAt(Date.from(Instant.now().plusSeconds(Long.parseLong(jwtConfig.getRefreshTokenExpire()))))
-//                .withExpiresAt(new Date(System.currentTimeMillis() + Integer.parseInt(jwtConfig.getRefreshTokenExpire()) * 1000L))
                 .sign(jwtConfig.getEncodedSecretKey());
     }
 
@@ -104,6 +105,23 @@ public class JwtTokenProvider {
                 .collect(Collectors.toList());
     }
 
+    public boolean validateToken(String token) {
+        try {
+            JWT.require(jwtConfig.getEncodedSecretKey()).build().verify(token);
+            return true;
+        } catch (SignatureException e) { // 유효하지 않은 JWT 서명
+            log.info("not valid jwt signature");
+        } catch (MalformedJwtException e) { // 유효하지 않은 JWT
+            log.info("not valid jwt");
+        } catch (ExpiredJwtException e) { // 만료된 JWT
+            log.info("expired jwt");
+        } catch (UnsupportedJwtException e) { // 지원하지 않는 JWT
+            log.info("unsupported jwt");
+        } catch (IllegalArgumentException e) { // 빈값
+            log.info("empty jwt");
+        }
+        return false;
+    }
 
     @Getter
     @Builder

@@ -2,17 +2,14 @@ package mutsa.api.controller.user;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import mutsa.api.config.security.CustomPrincipalDetails;
+import mutsa.api.dto.user.EmailChangeDto;
+import mutsa.api.dto.user.Oauth2InfoUserDto;
 import mutsa.api.dto.user.PasswordChangeDto;
-import mutsa.api.dto.user.SignUpOauthUserDto;
-import mutsa.api.dto.user.SignUpUserDto;
 import mutsa.api.service.user.UserService;
 import mutsa.common.domain.models.user.embedded.Address;
 import mutsa.common.dto.user.UserInfoDto;
-import mutsa.common.exception.BusinessException;
-import mutsa.common.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,10 +41,10 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
-    @PostMapping("oauth/signup")
+    @PostMapping("/oauth/signup")
     public ResponseEntity signUpOauthUser(@AuthenticationPrincipal CustomPrincipalDetails user,
-                                         @Validated @RequestBody SignUpOauthUserDto signupAuthUserDto) {
-        userService.signUpAuth(user, signupAuthUserDto);
+                                          @Validated @RequestBody Oauth2InfoUserDto signupAuthUserDto) {
+        userService.signupOauth(user, signupAuthUserDto);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
@@ -60,15 +57,14 @@ public class UserController {
 
     @PatchMapping("/email")
     @PreAuthorize("hasAuthority('user.update')")
-    public ResponseEntity updateEmail(@AuthenticationPrincipal UserDetails user, @RequestBody String email) {
+    public ResponseEntity updateEmail(@AuthenticationPrincipal UserDetails user, @RequestBody EmailChangeDto email) {
         userService.updateEmail(user, email);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @PatchMapping("/address")
     @PreAuthorize("hasAuthority('user.update')")
-    public ResponseEntity updateAddress(@AuthenticationPrincipal UserDetails user, @RequestBody
-    Address address) {
+    public ResponseEntity updateAddress(@AuthenticationPrincipal UserDetails user, @RequestBody Address address) {
         userService.updateAddress(user, address);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }

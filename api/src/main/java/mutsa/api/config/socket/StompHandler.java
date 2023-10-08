@@ -1,7 +1,5 @@
 package mutsa.api.config.socket;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.api.util.JwtTokenProvider;
@@ -11,8 +9,8 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 @Component
@@ -24,23 +22,16 @@ public class StompHandler implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        byte[] payloadBytes = (byte[]) message.getPayload();
-        String payloadString = new String(payloadBytes, StandardCharsets.UTF_8);
-
-//        아직 헤더에 토큰 검증은 진행하지 않습니다.
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         if (!StompCommand.DISCONNECT.equals(accessor.getCommand())) {
             String token = Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization"))
-                .substring(7);
+                    .substring(7);
 
             JwtTokenProvider.JWTInfo jwtInfo = null;
-            try {
+            if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
                 jwtInfo = jwtTokenProvider.decodeToken(token);
-                log.debug(jwtInfo.toString());
-            } catch (TokenExpiredException e) {
-                log.debug("TokenExpiredException: ", e);
-            } catch (JWTVerificationException ignored) {
-                log.debug("JWTVerificationException: ", ignored);
+            } else {
+                log.info("[소켓] 유효한 JWT토큰이 없습니다.");
             }
 
             // WebSocket 세션에 사용자 정보 저장

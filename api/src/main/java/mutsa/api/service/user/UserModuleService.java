@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.exception.BusinessException;
+import mutsa.common.exception.ErrorCode;
 import mutsa.common.repository.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static mutsa.common.exception.ErrorCode.USER_NOT_FOUND;
 
@@ -31,5 +34,10 @@ public class UserModuleService {
         return userRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+    }
+
+    public Optional<User> getByEmail(String email) {
+        return userRepository
+                .findByEmail(email);
     }
 }

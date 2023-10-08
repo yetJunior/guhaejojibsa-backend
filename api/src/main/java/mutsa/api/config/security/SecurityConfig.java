@@ -3,6 +3,7 @@ package mutsa.api.config.security;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import mutsa.api.config.oauth2.OAuth2UserServiceImpl;
 import mutsa.api.config.security.filter.CustomAuthorizationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
