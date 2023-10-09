@@ -12,12 +12,16 @@ import mutsa.api.dto.payment.PaymentSuccessDto;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
+import mutsa.common.domain.models.payment.CardReceipt;
 import mutsa.common.domain.models.payment.PayType;
 import mutsa.common.domain.models.payment.Payment;
+import mutsa.common.domain.models.payment.Receipt;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.order.OrderRepository;
+import mutsa.common.repository.payment.CardReceiptRepository;
 import mutsa.common.repository.payment.PaymentRepository;
+import mutsa.common.repository.payment.ReceiptRepository;
 import mutsa.common.repository.user.UserRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,8 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.mockStatic;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -60,6 +66,10 @@ class PaymentModuleServiceTest {
     private PaymentRepository paymentRepository;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private ReceiptRepository receiptRepository;
+    @Autowired
+    private CardReceiptRepository cardReceiptRepository;
 
     private MockRestServiceServer mockServer;
     private static MockedStatic<SecurityUtil> securityUtilMockedStatic;
@@ -134,6 +144,25 @@ class PaymentModuleServiceTest {
         // Then
         assertThat(result).isNotNull();
         mockServer.verify();
+    }
+
+    @DisplayName("영수증 정보 저장")
+    @Test
+    void saveReceiptTest() {
+        // Given
+        Order savedOrder = createAndSaveOrder();
+        Payment payment = createAndSavePayment(article, savedOrder);
+        PaymentSuccessDto paymentSuccessDto = createMockedPaymentSuccessDto(savedOrder.getApiId(), article.getPrice());
+
+        // When
+        paymentModuleService.saveReceipt(paymentSuccessDto, payment);
+
+        // Then
+        Optional<Receipt> optionalReceipt = receiptRepository.findByPayment(payment);
+        assertTrue(optionalReceipt.isPresent());
+
+        Optional<CardReceipt> optionalCardReceipt = cardReceiptRepository.findByReceipt(optionalReceipt.get());
+        assertTrue(optionalCardReceipt.isPresent());
     }
 
     private Order createAndSaveOrder() {
