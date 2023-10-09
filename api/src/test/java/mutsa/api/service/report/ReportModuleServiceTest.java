@@ -7,9 +7,11 @@ import mutsa.api.dto.report.ReportUpdateStatusDto;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.report.Report;
 import mutsa.common.domain.models.report.ReportStatus;
+import mutsa.common.domain.models.review.Review;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.report.ReportRepository;
+import mutsa.common.repository.review.ReviewRepository;
 import mutsa.common.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,10 +38,13 @@ class ReportModuleServiceTest {
     private UserRepository userRepository;
     @Autowired
     private ArticleRepository articleRepository;
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     private User reporter;
     private User reportedUser;
     private Article targetArticle;
+    private Review targetReview;
 
     @BeforeEach
     public void init() {
@@ -54,6 +59,9 @@ class ReportModuleServiceTest {
                 .user(reportedUser)
                 .build();
         targetArticle = articleRepository.save(targetArticle);
+
+        targetReview = Review.of(reportedUser, targetArticle, "sample review", 5);
+        targetReview = reviewRepository.save(targetReview);
     }
 
     @Test
@@ -129,5 +137,40 @@ class ReportModuleServiceTest {
         //then
         Optional<Report> byApiId = reportRepository.findByApiId(report.getApiId());
         assertThat(byApiId.isPresent()).isFalse();
+    }
+
+    @Test
+    void getReportsByStatus() {
+        //given
+        String content1 = "test report content 1";
+        String content2 = "test report content 2";
+        String resourceType = "article";
+        reportModuleService.createReport(reporter.getUsername(), resourceType, targetArticle.getApiId(), content1);
+        reportModuleService.createReport(reporter.getUsername(), resourceType, targetArticle.getApiId(), content2);
+
+        ReportUpdateStatusDto updateDto = new ReportUpdateStatusDto();
+        updateDto.setStatus(ReportStatus.RESOLVED);
+        reportModuleService.updateReportStatus(reportModuleService.getAllReports().get(0).getApiId(), updateDto);
+
+        //when
+        List<Report> pendingReports = reportModuleService.getReportsByStatus(ReportStatus.PENDING);
+
+        //then
+        assertThat(pendingReports.size()).isEqualTo(1);
+        assertThat(pendingReports.get(0).getStatus()).isEqualTo(ReportStatus.PENDING);
+    }
+
+    @Test
+    void createReportWithReviewResourceType() {
+        //given
+        String content = "test report content for review";
+        String resourceType = "review";
+
+        //when
+        Report report = reportModuleService.createReport(reporter.getUsername(), resourceType, targetReview.getApiId(), content);
+
+        //then
+        assertThat(report.getReporter().getApiId()).isEqualTo(reporter.getApiId());
+        assertThat(report.getReportedUser().getApiId()).isEqualTo(reportedUser.getApiId());
     }
 }
