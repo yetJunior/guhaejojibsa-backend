@@ -18,9 +18,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = {ApiApplication.class, TestRedisConfiguration.class, TestBootstrapConfig.class})
 @AutoConfigureMockMvc
@@ -43,7 +47,7 @@ class AuthControllerTest {
                         .content(body)
                 )
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(status().is2xxSuccessful());
     }
 
     @Test
@@ -58,7 +62,7 @@ class AuthControllerTest {
                         .content(body)
                 )
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
 
@@ -78,6 +82,21 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/signup")
                         .content(body)
                         .contentType(APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(status().is2xxSuccessful());
+    }
+
+
+    @Test
+    void signupGoogleTest() throws Exception {
+        mockMvc.perform(get("/oauth2/authorization/{registrationId}", "google"))
+                .andExpect(status().is3xxRedirection()) // Redirects to OAuth provider login page
+                .andExpect(header().string("Location", containsString("accounts.google.com")));
+    }
+
+    @Test
+    void signupNaverTest() throws Exception {
+        mockMvc.perform(get("/oauth2/authorization/{registrationId}", "naver"))
+                .andExpect(status().is3xxRedirection()) // Redirects to OAuth provider login page
+                .andExpect(header().string("Location", containsString("nid.naver.com")));
     }
 }
