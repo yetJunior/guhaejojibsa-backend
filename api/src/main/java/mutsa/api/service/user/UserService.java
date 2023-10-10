@@ -30,7 +30,6 @@ import mutsa.common.repository.user.UserRoleRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,8 +127,8 @@ public class UserService {
     }
 
     @Transactional
-    public void signupOauth(CustomPrincipalDetails customPrincipalDetails, Oauth2InfoUserDto signupAuthUserDto) {
-        User user = userModuleService.getByUsername(customPrincipalDetails.getUsername());
+    public void signupOauth(String currentUsername, Oauth2InfoUserDto signupAuthUserDto) {
+        User user = userModuleService.getByUsername(currentUsername);
         Address address = Address.of(signupAuthUserDto.getZipcode(), signupAuthUserDto.getCity(), signupAuthUserDto.getStreet());
         user.updateAddress(address);
         user.setAvailable();
@@ -152,8 +151,8 @@ public class UserService {
     }
 
     @Transactional
-    public void changePassword(CustomPrincipalDetails user, PasswordChangeDto passwordChangeDto) {
-        User findUser = findUsername(user.getUsername());
+    public void changePassword(String currentUsername, PasswordChangeDto passwordChangeDto) {
+        User findUser = findUsername(currentUsername);
 
         if (!bCryptPasswordEncoder.matches(passwordChangeDto.getPassword(), findUser.getPassword())) {
             throw new BusinessException(ErrorCode.DIFFERENT_PASSWORD);
@@ -207,21 +206,21 @@ public class UserService {
     }
 
     @Transactional
-    public void updateImageUrl(UserDetails userDetails, String raw) {
-        User user = findUsername(userDetails.getUsername());
+    public void updateImageUrl(String currentUsername, ProfileChangeDto profileChangeDto) {
+        User user = findUsername(currentUsername);
 
-        user.updateImageUrl(raw.replace("\\", "").replace("\"", ""));
+        user.updateImageUrl(profileChangeDto.getImageUrl().replace("\\", "").replace("\"", ""));
     }
 
     @Transactional
-    public void updateEmail(UserDetails userDetails, EmailChangeDto email) {
-        User findUser = findUsername(userDetails.getUsername());
+    public void updateEmail(String currentUsername, EmailChangeDto email) {
+        User findUser = findUsername(currentUsername);
         findUser.updateEmail(email.getEmail());
     }
 
     @Transactional
-    public void updateAddress(UserDetails userDetails, Address address) {
-        User findUser = findUsername(userDetails.getUsername());
+    public void updateAddress(String currentUsername, Address address) {
+        User findUser = findUsername(currentUsername);
         findUser.updateAddress(address);
     }
 
