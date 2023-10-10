@@ -56,4 +56,8 @@ public class CardReceipt {
 
     @Column
     private String receiptUrl; // 영수증 URL
+
+    public void setReceipt(Receipt receipt) {
+        this.receipt = receipt;
+    }
 }
