@@ -37,6 +37,7 @@ public class Article extends BaseEntity implements Serializable {
     @Column(nullable = false)
     private String description;
 
+    @Column
     private String thumbnail;
 
     @Column(nullable = false)
@@ -53,9 +54,9 @@ public class Article extends BaseEntity implements Serializable {
     @Builder.Default
     private ArticleStatus articleStatus = ArticleStatus.LIVE;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Image> images = new ArrayList<>();
+//    @OneToMany(fetch = FetchType.LAZY)
+//    @Builder.Default
+//    private List<Image> images = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "article")
     @Builder.Default
@@ -77,9 +78,9 @@ public class Article extends BaseEntity implements Serializable {
         this.orders.add(order);
     }
 
-    public void addImage(Image image) {this.images.add(image);}
-
-    public void addImages(Collection<Image> imageCollections) {this.images.addAll(imageCollections);}
+//    public void addImage(Image image) {this.images.add(image);}
+//
+//    public void addImages(Collection<Image> imageCollections) {this.images.addAll(imageCollections);}
 
     public boolean validUser(User user) {
         return Objects.equals(this.user.getId(), user.getId());
