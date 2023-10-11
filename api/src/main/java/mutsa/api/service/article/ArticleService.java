@@ -18,14 +18,17 @@ import mutsa.api.dto.image.ImageResponseDto;
 import mutsa.api.service.image.ImageModuleService;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.filter.article.ArticleFilter;
+import mutsa.common.domain.models.Status;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.image.Image;
 import mutsa.common.domain.models.image.ImageReference;
+import mutsa.common.domain.models.image.ImageStatusFilter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class ArticleService {
     private final ArticleModuleService articleModuleService;
     private final ImageModuleService imageModuleService;
 
+    @Transactional
     public ArticleResponseDto save(ArticleCreateRequestDto requestDto) {
         Article article = articleModuleService.save(requestDto);
 
@@ -46,26 +50,39 @@ public class ArticleService {
                 .sorted(Comparator.comparing(Image::getId))
                 .map(image -> ImageResponseDto.to(image))
                 .collect(Collectors.toList());
+
+        article.setThumbnail(imageResponseDtos.get(0).getFullPath());
+
         return ArticleResponseDto.to(article, imageResponseDtos);
     }
 
+    @Transactional
     public ArticleResponseDto update(ArticleUpdateRequestDto updateDto) {
         Article article = articleModuleService.update(updateDto);
+        List<ImageResponseDto> imageResponseDtos;
 
         if (updateDto.getImages() == null || updateDto.getImages().isEmpty()) {
-            return ArticleResponseDto.to(article, null);
+            imageResponseDtos = imageModuleService.saveAll(updateDto.getImages(),
+                            article.getApiId(), ImageReference.ARTICLE)
+                    .stream()
+                    .sorted(Comparator.comparing(Image::getId))
+                    .map(image -> ImageResponseDto.to(image))
+                    .collect(Collectors.toList());
+
+            return ArticleResponseDto.to(article, imageResponseDtos);
         }
 
         //  기존에 있던 이미지는 논리 삭제 처리
         imageModuleService.deleteByRefApiId(article.getApiId());
 //        article = deleteImages(article);
         article.setThumbnail(null);
-        List<ImageResponseDto> imageResponseDtos = imageModuleService.saveAll(updateDto.getImages(),
+        imageResponseDtos = imageModuleService.saveAll(updateDto.getImages(),
                 article.getApiId(), ImageReference.ARTICLE)
                 .stream()
                 .sorted(Comparator.comparing(Image::getId))
                 .map(image -> ImageResponseDto.to(image))
                 .collect(Collectors.toList());
+        article.setThumbnail(imageResponseDtos.get(0).getFullPath());
         return ArticleResponseDto.to(article, imageResponseDtos);
     }
 
@@ -83,7 +100,7 @@ public class ArticleService {
 
     public ArticleResponseDto read(String apiId) {
         Article articleEntity = articleModuleService.getByApiId(apiId);
-        List<ImageResponseDto> imageResponseDtos = imageModuleService.getAllByRefId(apiId)
+        List<ImageResponseDto> imageResponseDtos = imageModuleService.getAllByRefId(apiId, ImageStatusFilter.ACTIVE)
                 .stream()
                 //  Id를 기준으로 정렬 수행
                 .sorted(Comparator.comparing(Image::getId))
