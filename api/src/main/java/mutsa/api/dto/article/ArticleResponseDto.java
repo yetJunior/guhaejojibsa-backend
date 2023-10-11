@@ -24,11 +24,10 @@ import static mutsa.common.constants.ImageConstants.DEFAULT_ARTICLE_IMG;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ArticleResponseDto {
-    public static final ImageResponseDto DEFAULT_ARTICLE_IMG_RESPONSE = ImageResponseDto.to(DEFAULT_ARTICLE_IMG);
+//    public static final ImageResponseDto DEFAULT_ARTICLE_IMG_RESPONSE = ImageResponseDto.to(DEFAULT_ARTICLE_IMG);
     private String title;
     private String description;
     private String username;
-    private String thumbnail;
     private String apiId;
     private Status status;
     private ArticleStatus articleStatus;
@@ -36,31 +35,28 @@ public class ArticleResponseDto {
     private List<ImageResponseDto> images;
     private Long price;
 
-    public static ArticleResponseDto to(Article entity) {
+    public static ArticleResponseDto to(Article entity, List<ImageResponseDto> images) {
         return ArticleResponseDto.builder()
                 .title(entity.getTitle())
                 .description(entity.getDescription())
                 .username(entity.getUser().getUsername())
-                .thumbnail(entity.getThumbnail())
                 .apiId(entity.getApiId())
                 .status(entity.getStatus())
                 .articleStatus(entity.getArticleStatus())
                 .createdDate(entity.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a hh:mm:ss")))
                 .price(entity.getPrice())
-                .images(getImages(entity.getImages()))
+                .images(images)
                 .build();
     }
 
-    private static List<ImageResponseDto> getImages(List<Image> images) {
-        if (images.size() == 0) {
-            return List.of(DEFAULT_ARTICLE_IMG_RESPONSE);
-        }
-        return images.stream().map(ImageResponseDto::to).toList();
-    }
+//    private static List<ImageResponseDto> getImages(List<Image> images) {
+////        if (images.size() == 0) {
+////            return List.of(DEFAULT_ARTICLE_IMG_RESPONSE);
+////        }
+//        return images.stream().map(ImageResponseDto::to).toList();
+//    }
 
     public void addArticleImages(List<ImageResponseDto> images) {
         this.images.addAll(images);
     }
-
-
 }
