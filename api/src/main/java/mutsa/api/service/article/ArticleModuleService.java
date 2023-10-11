@@ -62,12 +62,12 @@ public class ArticleModuleService {
         return article;
     }
 
-    @Transactional
-    public Article setImages(Article article, Collection<Image> imageCollection) {
-        article.addImages(imageCollection);
-
-        return articleRepository.save(article);
-    }
+//    @Transactional
+//    public Article setImages(Article article, Collection<Image> imageCollection) {
+//        article.addImages(imageCollection);
+//
+//        return articleRepository.save(article);
+//    }
 
     @Transactional
     public Article saveTest(ArticleCreateRequestDto requestDto) {
@@ -145,9 +145,9 @@ public class ArticleModuleService {
         return articleRepository.getPage(articleFilter, pageable);
     }
 
-    @Transactional
-    public Article deleteImages(Article article) {
-        article.setImages(new ArrayList<>());
-        return articleRepository.save(article);
-    }
+//    @Transactional
+//    public Article deleteImages(Article article) {
+//        article.setImages(new ArrayList<>());
+//        return articleRepository.save(article);
+//    }
 }
