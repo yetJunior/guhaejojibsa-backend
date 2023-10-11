@@ -11,6 +11,7 @@ import mutsa.api.service.order.OrderModuleService;
 import mutsa.api.service.user.UserModuleService;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.image.Image;
+import mutsa.common.domain.models.image.ImageReference;
 import mutsa.common.domain.models.order.Order;
 import mutsa.common.domain.models.review.Review;
 import mutsa.common.domain.models.user.User;
@@ -29,8 +30,8 @@ public class ReviewService {
 
     // 리뷰 생성
     public ReviewResponseDto createReview(
-        String articleApiId, String orderApiId, String username, ReviewRequestDto requestDto
-        ) {
+            String articleApiId, String orderApiId, String username, ReviewRequestDto requestDto
+    ) {
         User user = userModuleService.getByUsername(username);
         Article article = articleModuleService.getByApiId(articleApiId);
         Order order = orderModuleService.getByApiId(orderApiId);
@@ -41,8 +42,8 @@ public class ReviewService {
             return ReviewResponseDto.fromEntity(review);
         }
 
-        List<Image> images = imageModuleService.saveAllReviewImage(requestDto.getImages(),
-            review.getApiId());
+        List<Image> images = imageModuleService.saveAll(requestDto.getImages(),
+                review.getApiId(), ImageReference.REVIEW);
         return ReviewResponseDto.fromEntity(reviewModuleService.setImages(review, images));
     }
 
@@ -70,7 +71,8 @@ public class ReviewService {
 
         imageModuleService.deleteByRefApiId(review.getApiId());
         review = deleteImages(review);
-        List<Image> images = imageModuleService.saveAllReviewImage(reviewUpdateDto.getImages(), reviewApiId);
+        List<Image> images = imageModuleService.saveAll(reviewUpdateDto.getImages(), reviewApiId,
+                ImageReference.REVIEW);
         return ReviewResponseDto.fromEntity(reviewModuleService.setImages(review, images));
     }
 

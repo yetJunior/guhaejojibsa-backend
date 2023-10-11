@@ -11,6 +11,7 @@ import mutsa.api.config.TestRedisConfiguration;
 import mutsa.api.config.security.CustomPrincipalDetails;
 import mutsa.api.dto.article.ArticleCreateRequestDto;
 import mutsa.api.dto.article.ArticleFilterDto;
+import mutsa.api.dto.article.ArticlePageResponseDto;
 import mutsa.api.dto.article.ArticleResponseDto;
 import mutsa.api.dto.article.ArticleUpdateRequestDto;
 import mutsa.common.domain.models.Status;
@@ -129,7 +130,7 @@ public class ArticleServiceTest {
     @Test
     @DisplayName("Article Service 유저 이름 기반 페이지네이션 테스트")
     public void pageByUsernameTest() {
-        Page<ArticleResponseDto> dtos = articleService.getPageByUsername(
+        Page<ArticlePageResponseDto> dtos = articleService.getPageByUsername(
                 user.getUsername(),
                 Sort.Direction.ASC,
                 ArticleFilterDto.of()
@@ -144,7 +145,7 @@ public class ArticleServiceTest {
     @Test
     @DisplayName("Article Service 페이지네이션 테스트")
     public void pageTest() {
-        Page<ArticleResponseDto> dtos = articleService.getPage(0, 10, Sort.Direction.ASC, ArticleFilterDto.of());
+        Page<ArticlePageResponseDto> dtos = articleService.getPage(0, 10, Sort.Direction.ASC, ArticleFilterDto.of());
 
         assert dtos != null && !dtos.isEmpty();
         for (int i = 0; i < articles.size(); i++) {
@@ -159,7 +160,7 @@ public class ArticleServiceTest {
 
         articles = articleRepository.saveAll(articles);
 
-        Page<ArticleResponseDto> dtos = articleService.getPage(0, 10, Sort.Direction.ASC, ArticleFilterDto.of());
+        Page<ArticlePageResponseDto> dtos = articleService.getPage(0, 10, Sort.Direction.ASC, ArticleFilterDto.of());
 
         assert dtos != null && !dtos.isEmpty();
         Assertions.assertEquals(9, dtos.getNumberOfElements());
@@ -172,7 +173,7 @@ public class ArticleServiceTest {
 
         articles = articleRepository.saveAll(articles);
 
-        Page<ArticleResponseDto> dtos = articleService.getPage(
+        Page<ArticlePageResponseDto> dtos = articleService.getPage(
                 0,
                 10,
                 Sort.Direction.ASC,
@@ -190,7 +191,7 @@ public class ArticleServiceTest {
 
         articles = articleRepository.findAll();
 
-        Page<ArticleResponseDto> dtos = articleService.getPage(
+        Page<ArticlePageResponseDto> dtos = articleService.getPage(
                 0,
                 10,
                 Sort.Direction.ASC,
@@ -202,6 +203,15 @@ public class ArticleServiceTest {
     }
 
     private void checkSameValue(Article articleEntity, ArticleResponseDto articleResponseDto) {
+        Assertions.assertEquals(articleEntity.getApiId(), articleResponseDto.getApiId());
+        Assertions.assertEquals(articleEntity.getTitle(), articleResponseDto.getTitle());
+        Assertions.assertEquals(articleEntity.getDescription(), articleResponseDto.getDescription());
+        Assertions.assertEquals(articleEntity.getUser().getUsername(), articleResponseDto.getUsername());
+        Assertions.assertEquals(articleEntity.getStatus(), articleResponseDto.getStatus());
+        Assertions.assertEquals(articleEntity.getArticleStatus(), articleResponseDto.getArticleStatus());
+    }
+
+    private void checkSameValue(Article articleEntity, ArticlePageResponseDto articleResponseDto) {
         Assertions.assertEquals(articleEntity.getApiId(), articleResponseDto.getApiId());
         Assertions.assertEquals(articleEntity.getTitle(), articleResponseDto.getTitle());
         Assertions.assertEquals(articleEntity.getDescription(), articleResponseDto.getDescription());

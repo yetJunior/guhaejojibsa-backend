@@ -31,7 +31,7 @@ public class ArticleController {
 
     //  조회
     @GetMapping
-    public ResponseEntity<Page<ArticleResponseDto>> getArticleList(
+    public ResponseEntity<Page<ArticlePageResponseDto>> getArticleList(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "order", defaultValue = "DESC") ArticleOrderDirection direction,
