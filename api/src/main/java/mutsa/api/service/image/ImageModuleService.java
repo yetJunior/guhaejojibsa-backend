@@ -14,6 +14,7 @@ import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.Status;
 import mutsa.common.domain.models.image.Image;
 import mutsa.common.domain.models.image.ImageReference;
+import mutsa.common.domain.models.image.ImageStatusFilter;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.exception.BusinessException;
 import mutsa.common.exception.ErrorCode;
@@ -88,7 +89,7 @@ public class ImageModuleService {
 //                .findByUsername(SecurityUtil.getCurrentUsername())
 //                .orElseThrow(() -> new BusinessException(ErrorCode.SECURITY_CONTEXT_ERROR));
 
-        List<Image> images = imageRepository.getAllByRefApiId(refApiId);
+        List<Image> images = imageRepository.getAllByRefApiIdWithGivenStatus(refApiId, Status.ACTIVE);
 
         images.forEach(image -> image.setStatus(Status.DELETED));
     }
@@ -101,7 +102,7 @@ public class ImageModuleService {
 //                .findByUsername(SecurityUtil.getCurrentUsername())
 //                .orElseThrow(() -> new BusinessException(ErrorCode.SECURITY_CONTEXT_ERROR));
 
-        List<Image> images = imageRepository.getAllByRefApiId(refApiId);
+        List<Image> images = imageRepository.getAllByRefApiIdWithGivenStatus(refApiId, Status.ACTIVE);
 
         images.forEach(image -> {
             //  일시적으로 유저가 작성한 이미지인지 확인하는 기능 주석
@@ -113,7 +114,15 @@ public class ImageModuleService {
         });
     }
 
-    public List<Image> getAllByRefId(String refApiId) {
-        return imageRepository.getAllByRefApiId(refApiId);
+    public List<Image> getAllByRefId(String refApiId, ImageStatusFilter statusFilter) {
+        List<Image> images;
+        switch (statusFilter) {
+            case ACTIVE, DELETED -> {
+                images = imageRepository.getAllByRefApiIdWithGivenStatus(refApiId, statusFilter.getStatus());
+                break;
+            }
+            default -> images = imageRepository.getAllByRefApiId(refApiId);
+        }
+        return images;
     }
 }

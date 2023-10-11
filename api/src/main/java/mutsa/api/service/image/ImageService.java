@@ -14,6 +14,7 @@ import mutsa.api.dto.image.ImageResponseDto;
 import mutsa.api.dto.image.ImagesRequestDto;
 import mutsa.common.domain.models.image.Image;
 import mutsa.common.domain.models.image.ImageReference;
+import mutsa.common.domain.models.image.ImageStatusFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +43,7 @@ public class ImageService {
     }
 
     public List<ImageResponseDto> getAllByRefId(String refApiId) {
-        return imageModuleService.getAllByRefId(refApiId)
+        return imageModuleService.getAllByRefId(refApiId, ImageStatusFilter.ACTIVE)
                 .stream()
                 .sorted(Comparator.comparing(Image::getId))
                 .map(image -> ImageResponseDto.to(image))
