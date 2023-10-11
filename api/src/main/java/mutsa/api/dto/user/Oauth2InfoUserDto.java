@@ -4,10 +4,8 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 //oauth2로 로그인 시에 추가 정보를 위한 DTO
 public class Oauth2InfoUserDto {
     private String phoneNumber;
