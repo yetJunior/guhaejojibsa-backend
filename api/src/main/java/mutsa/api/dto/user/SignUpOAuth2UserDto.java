@@ -7,7 +7,6 @@ import mutsa.common.domain.models.user.embedded.OAuth2Type;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignUpOAuth2UserDto {
