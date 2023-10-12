@@ -57,15 +57,12 @@ public class ArticleRepositoryImpl extends Querydsl4RepositorySupport implements
     private void doFilter(JPAQuery<Article> query, ArticleFilter articleFilter) {
         //  게시글 현재 상태에 따른 필터 처리 (숨김, 공개)
         switch (articleFilter.getArticleStatus()) {
-            case LIVE, EXPIRED -> {
-                query.where(article.articleStatus.eq(articleFilter.getArticleStatus()));
-            }
-            default -> {}
+            case LIVE, EXPIRED -> query.where(article.articleStatus.eq(articleFilter.getArticleStatus()));
         }
 
         //  게시글 현재 상태에 따른 필터 처리 (삭제[soft], 존재)
         switch (articleFilter.getStatus()) {
-            default -> query.where(article.status.eq(articleFilter.getStatus()));
+            case ACTIVE, DELETED -> query.where(article.status.eq(articleFilter.getStatus()));
         }
 
         if (StringUtils.hasText(articleFilter.getTitle())) {
