@@ -57,7 +57,9 @@ public class ArticleRepositoryImpl extends Querydsl4RepositorySupport implements
     private void doFilter(JPAQuery<Article> query, ArticleFilter articleFilter) {
         //  게시글 현재 상태에 따른 필터 처리 (숨김, 공개)
         switch (articleFilter.getArticleStatus()) {
-            case LIVE, EXPIRED -> query.where(article.articleStatus.eq(articleFilter.getArticleStatus()));
+            case LIVE, EXPIRED -> {
+                query.where(article.articleStatus.eq(articleFilter.getArticleStatus()));
+            }
             default -> {}
         }
 
@@ -80,8 +82,7 @@ public class ArticleRepositoryImpl extends Querydsl4RepositorySupport implements
     }
 
     private Page<Article> getResultPage(JPAQuery<Article> query, Pageable pageable) {
-        long totalCount = query.fetch().size();
         List<Article> articleList = getQuerydsl().applyPagination(pageable, query).fetch();
-        return new PageImpl<Article>(articleList, pageable, totalCount);
+        return new PageImpl<Article>(articleList, pageable, articleList.size());
     }
 }
