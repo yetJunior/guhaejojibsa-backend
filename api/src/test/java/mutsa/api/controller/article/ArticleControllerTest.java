@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import mutsa.api.ApiApplication;
 import mutsa.api.config.TestRedisConfiguration;
 import mutsa.api.dto.article.ArticleCreateRequestDto;
+import mutsa.api.dto.article.ArticlePageResponseDto;
 import mutsa.api.dto.article.ArticleResponseDto;
 import mutsa.api.dto.article.ArticleUpdateRequestDto;
 import mutsa.api.service.article.ArticleService;
@@ -287,12 +288,12 @@ public class ArticleControllerTest {
         JsonNode jsonNode = objectMapper.readTree(mvcResult.getResponse().getContentAsString());
         String content = jsonNode.get("content").toString();
 
-        ArticleResponseDto[] responseDtos = objectMapper.readValue(
+        ArticlePageResponseDto[] responseDtos = objectMapper.readValue(
                 content,
-                ArticleResponseDto[].class
+                ArticlePageResponseDto[].class
         );
 
-        for (ArticleResponseDto responseDto : responseDtos) {
+        for (ArticlePageResponseDto responseDto : responseDtos) {
             Assertions.assertEquals(user1.getUsername(), responseDto.getUsername());
         }
     }
