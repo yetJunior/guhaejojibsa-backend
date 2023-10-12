@@ -6,7 +6,7 @@ name: Backend Deploy
 on:
   # Triggers the workflow on push or pull request events but only for the "develop" branch
   push:
-    branches: [ "main" ]
+    branches: [ "deploy" ]
   pull_request:
     branches: [ "main" ]
 #
@@ -63,6 +63,17 @@ jobs:
         run: |
           ./gradlew clean build --exclude-task test -x asciidoctor
 
+      # Spring version Retrieve
+      - name : Retrieve Version
+        run: |
+          echo "::set-output name=VERSION_NAME::$(./gradlew -q printVersionName))"
+        id: spring_version
+
+#      # Spring version to write GitHub Action ENV
+#      - name: Get version
+#        run: |
+#          echo "version_name=${{steps.spring_version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
+
       # 도커 허브 로그인
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
@@ -76,7 +87,9 @@ jobs:
 
       # Docker Hub에 private 이미지로 푸시
       - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ steps.spring_version.outputs.VERSION_NAME }}
 
       # Deploy to AWS EC2
       - name: Deploy to AWS EC2
