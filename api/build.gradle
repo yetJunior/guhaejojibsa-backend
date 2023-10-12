@@ -7,8 +7,8 @@ plugins {
     id 'jacoco'
 }
 
-group = 'mutsa'
-version = '0.0.1-SNAPSHOT'
+group = 'guhaejo-jibsa'
+version = '1.0.0'
 
 java {
     sourceCompatibility = '17'
@@ -133,6 +133,10 @@ task copyDocument(type: Copy) {
     dependsOn asciidoctor
     from file("build/docs/asciidoc")
     into file("src/main/resources/static/docs")
+}
+
+task printVersion() {
+    println project.version;
 }
 
 // build 의 의존작업 명시
