@@ -73,7 +73,7 @@ public class ArticleRepositoryImpl extends Querydsl4RepositorySupport implements
     }
 
     private Page<Article> getResultPage(JPAQuery<Article> query, Pageable pageable) {
-        List<Article> articleList = getQuerydsl().applyPagination(pageable, query).fetch();
-        return new PageImpl<Article>(articleList, pageable, articleList.size());
+        QueryResults<Article> queryResults = this.getQuerydsl().applyPagination(pageable, query).fetchResults();
+        return new PageImpl<Article>(queryResults.getResults(), pageable, queryResults.getTotal());
     }
 }
