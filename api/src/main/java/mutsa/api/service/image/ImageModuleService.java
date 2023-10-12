@@ -35,6 +35,10 @@ public class ImageModuleService {
                 .findByUsername(SecurityUtil.getCurrentUsername())
                 .orElseThrow(() -> new BusinessException(ErrorCode.SECURITY_CONTEXT_ERROR));
 
+        if (imagesRequestDtos == null || imagesRequestDtos.isEmpty()) {
+            return null;
+        }
+
         List<Image> images = new ArrayList<>();
 
         for (int i = 0; i < imagesRequestDtos.size(); i++) {
