@@ -6,16 +6,12 @@
 
 package mutsa.api.service.article;
 
-import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import mutsa.api.dto.article.ArticleCreateRequestDto;
 import mutsa.api.dto.article.ArticleUpdateRequestDto;
 import mutsa.api.util.ArticleUtil;
-import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.filter.article.ArticleFilter;
 import mutsa.common.domain.models.article.Article;
-import mutsa.common.domain.models.image.Image;
-import mutsa.common.domain.models.user.User;
 import mutsa.common.exception.BusinessException;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.user.UserRepository;
@@ -28,9 +24,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import static mutsa.common.exception.ErrorCode.ARTICLE_NOT_FOUND;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -131,10 +124,10 @@ public class ArticleModuleService {
     ) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNum), size, direction, orderProperties);
 
-        return articleRepository.getPageByUsername(
-                username,
-                articleFilter,
-                pageable
+        articleFilter.setUsername(username);
+
+        return articleRepository.getPage(
+                articleFilter, pageable
         );
     }
 

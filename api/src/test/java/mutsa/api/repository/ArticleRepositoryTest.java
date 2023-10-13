@@ -79,7 +79,8 @@ public class ArticleRepositoryTest {
     @Test
     @DisplayName("유저가 올린 게시글 페이지네이션 테스트")
     public void readAllPageByUsernameTest() {
-        Page<Article> page = articleRepository.getPageByUsername(user1.getUsername(), articleFilter, PAGEABLE);
+        articleFilter.setUsername(user1.getUsername());
+        Page<Article> page = articleRepository.getPage(articleFilter, PAGEABLE);
 
         assert page != null && !page.isEmpty();
         Assertions.assertEquals(articles.size() - 1, page.getNumberOfElements());
