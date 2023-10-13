@@ -6,7 +6,7 @@ name: Backend Deploy
 on:
   # Triggers the workflow on push or pull request events but only for the "develop" branch
   push:
-    branches: [ "main" ]
+    branches: [ "deployment" ]
   pull_request:
     branches: [ "main" ]
 #
@@ -63,6 +63,19 @@ jobs:
         run: |
           ./gradlew clean build --exclude-task test -x asciidoctor
 
+      # Spring version Retrieve
+      - name : Retrieve Version
+        run: |
+          echo "::set-output name=VERSION_NAME::$(./gradlew -q printVersion)"
+          echo "Spring Version"
+          ./gradlew -q printVersion
+        id: spring_version
+
+#      # Spring version to write GitHub Action ENV
+#      - name: Get version
+#        run: |
+#          echo "version_name=${{steps.spring_version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
+
       # 도커 허브 로그인
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
@@ -71,12 +84,16 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       # Build Docker image
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }} ./
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest ./
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ steps.spring_version.outputs.VERSION_NAME }} ./
 
       # Docker Hub에 private 이미지로 푸시
-      - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}
+      - name: Push Docker Image to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ steps.spring_version.outputs.VERSION_NAME }}
 
       # Deploy to AWS EC2
       - name: Deploy to AWS EC2
@@ -91,5 +108,8 @@ jobs:
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
             sudo docker stop ${{ secrets.DOCKERHUB_REPOSITORY }} || true
             sudo docker rm ${{ secrets.DOCKERHUB_REPOSITORY }} || true
-            sudo docker image prune -a || y
-            sudo docker run -d -p 80:8080 -e SPRING_PROFILES_ACTIVE=prod --name ${{ secrets.DOCKERHUB_REPOSITORY }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+            docker rmi $(docker images -f=reference="*/${{ secrets.DOCKERHUB_REPOSITORY }}" -q) || true
+            sudo docker run -d -p 80:8080 -e SPRING_PROFILES_ACTIVE=prod \
+              --label io.portainer.accesscontrol.users=gjuser --restart unless-stopped \
+              --name ${{ secrets.DOCKERHUB_REPOSITORY }} \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
