@@ -1,6 +1,7 @@
 package mutsa.api.service.payment;
 
 import lombok.RequiredArgsConstructor;
+import mutsa.api.dto.payment.ReceiptApiIdDto;
 import mutsa.api.dto.payment.ReceiptCardResponseDto;
 import mutsa.api.dto.payment.ReceiptResponseDto;
 import mutsa.common.domain.models.payment.CardReceipt;
@@ -20,5 +21,9 @@ public class ReceiptService {
         ReceiptResponseDto receiptDto = ReceiptResponseDto.of(receipt);
         receiptDto.setCard(receiptCardDto);
         return receiptDto;
+    }
+
+    public ReceiptApiIdDto getReceiptApiIdByOrderApiId(String orderApiId) {
+        return ReceiptApiIdDto.of(receiptModuleService.getReceiptByOrderApiId(orderApiId));
     }
 }
