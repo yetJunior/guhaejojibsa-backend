@@ -68,7 +68,7 @@ jobs:
         run: |
           echo "::set-output name=VERSION_NAME::$(./gradlew -q printVersion)"
           echo "Spring Version"
-          echo ./gradlew -q printVersion
+          ./gradlew -q printVersion
         id: spring_version
 
 #      # Spring version to write GitHub Action ENV
@@ -84,11 +84,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       # Build Docker image
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }} ./
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest ./
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}::${{ steps.spring_version.outputs.VERSION_NAME }} ./
 
       # Docker Hub에 private 이미지로 푸시
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker Image to Docker Hub
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ steps.spring_version.outputs.VERSION_NAME }}
