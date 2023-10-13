@@ -66,7 +66,7 @@ jobs:
       # Spring version Retrieve
       - name : Retrieve Version
         run: |
-          echo "::set-output name=VERSION_NAME::$(./gradlew -q printVersionName))"
+          echo "::set-output name=VERSION_NAME::$(./gradlew -q printVersion))"
         id: spring_version
 
 #      # Spring version to write GitHub Action ENV
