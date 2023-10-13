@@ -62,14 +62,7 @@ public class ArticleService {
         List<ImageResponseDto> imageResponseDtos;
 
         if (updateDto.getImages() == null || updateDto.getImages().isEmpty()) {
-            imageResponseDtos = imageModuleService.saveAll(updateDto.getImages(),
-                            article.getApiId(), ImageReference.ARTICLE)
-                    .stream()
-                    .sorted(Comparator.comparing(Image::getId))
-                    .map(image -> ImageResponseDto.to(image))
-                    .collect(Collectors.toList());
-
-            return ArticleResponseDto.to(article, imageResponseDtos);
+            return ArticleResponseDto.to(article, null);
         }
 
         //  기존에 있던 이미지는 논리 삭제 처리

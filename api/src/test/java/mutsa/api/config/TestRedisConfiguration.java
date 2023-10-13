@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import mutsa.api.config.redis.RedisConfig;
 import mutsa.api.service.chat.RedisMessageSubscriber;
 import mutsa.common.domain.models.user.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Locale;
+import redis.embedded.RedisServerBuilder;
 
 @Configuration
 @RequiredArgsConstructor
@@ -40,7 +42,11 @@ public class TestRedisConfiguration {
 
     @PostConstruct
     public void redisServer() throws IOException {
-        redisServer = new RedisServer(isRedisRunning() ? findAvailablePort() : port);
+//        redisServer = new RedisServer(isRedisRunning() ? findAvailablePort() : port);
+        redisServer = RedisServer.builder()
+                .port(isRedisRunning() ? findAvailablePort() : port)
+                .setting("maxmemory 128M")
+                .build();
         redisServer.start();
     }
 
