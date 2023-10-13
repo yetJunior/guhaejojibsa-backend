@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import mutsa.api.ApiApplication;
 import mutsa.api.config.TestRedisConfiguration;
 import mutsa.api.dto.order.OrderStatusRequestDto;
+import mutsa.api.dto.payment.ReceiptApiIdDto;
+import mutsa.api.service.payment.ReceiptService;
 import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
@@ -39,6 +42,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -69,6 +73,8 @@ class OrderControllerTest {
     private PaymentRepository paymentRepository;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+    @MockBean
+    private ReceiptService receiptService;
 
     private static MockedStatic<SecurityUtil> securityUtilMockedStatic;
 
@@ -101,6 +107,10 @@ class OrderControllerTest {
                 .build();
 
         article = articleRepository.save(article);
+
+        ReceiptApiIdDto mockedReceiptApiId = new ReceiptApiIdDto("mockedReceiptApiId");
+        when(receiptService.getReceiptApiIdByOrderApiId(anyString())).thenReturn(mockedReceiptApiId);
+
     }
 
     @AfterEach

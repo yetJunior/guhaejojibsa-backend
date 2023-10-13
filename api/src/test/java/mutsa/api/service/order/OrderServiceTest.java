@@ -9,6 +9,8 @@ import mutsa.api.dto.CustomPage;
 import mutsa.api.dto.order.OrderDetailResponseDto;
 import mutsa.api.dto.order.OrderFilterDto;
 import mutsa.api.dto.order.OrderStatusRequestDto;
+import mutsa.api.dto.payment.ReceiptApiIdDto;
+import mutsa.api.service.payment.ReceiptService;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
 import mutsa.common.domain.models.order.OrderStatus;
@@ -26,12 +28,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = {ApiApplication.class, TestRedisConfiguration.class})
 @ActiveProfiles("test")
@@ -52,6 +57,8 @@ class OrderServiceTest {
     private PaymentRepository paymentRepository;
     @Autowired
     private RedisTemplate<String, User> userRedisTemplate;
+    @MockBean
+    private ReceiptService receiptService;
     private User seller, consumer;
     private Article article, article2;
 
@@ -78,6 +85,9 @@ class OrderServiceTest {
                 .build();
 
         article2 = articleRepository.save(article2);
+
+        ReceiptApiIdDto mockedReceiptApiId = new ReceiptApiIdDto("mockedReceiptApiId");
+        when(receiptService.getReceiptApiIdByOrderApiId(anyString())).thenReturn(mockedReceiptApiId);
 
     }
 
