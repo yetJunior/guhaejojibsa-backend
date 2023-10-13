@@ -110,6 +110,6 @@ jobs:
             sudo docker rm ${{ secrets.DOCKERHUB_REPOSITORY }} || true
             sudo docker image prune -a || y
             sudo docker run -d -p 80:8080 -e SPRING_PROFILES_ACTIVE=prod \
-              --label io.portainer.accesscontrol.users=gjuser --restart on-failure[:5] \
+              --label io.portainer.accesscontrol.users=gjuser --restart on-failure 5 \
               --name ${{ secrets.DOCKERHUB_REPOSITORY }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
