@@ -7,7 +7,9 @@ import mutsa.api.dto.order.OrderDetailResponseDto;
 import mutsa.api.dto.order.OrderFilterDto;
 import mutsa.api.dto.order.OrderResponseListDto;
 import mutsa.api.dto.order.OrderStatusRequestDto;
+import mutsa.api.dto.payment.ReceiptApiIdDto;
 import mutsa.api.service.article.ArticleModuleService;
+import mutsa.api.service.payment.ReceiptService;
 import mutsa.api.service.user.UserModuleService;
 import mutsa.common.domain.filter.order.OrderFilter;
 import mutsa.common.domain.models.article.Article;
@@ -26,12 +28,16 @@ public class OrderService {
     private final UserModuleService userService;
     private final ArticleModuleService articleModuleService;
     private final OrderModuleService orderModuleService;
+    private final ReceiptService receiptService;
 
     public OrderDetailResponseDto findDetailOrder(String articleApiId, String orderApiId, String currentUsername) {
         User user = userService.getByUsername(currentUsername);
         Article article = articleModuleService.getByApiId(articleApiId);
+        ReceiptApiIdDto receiptApiIdDto = receiptService.getReceiptApiIdByOrderApiId(orderApiId);
+        OrderDetailResponseDto detailOrder = orderModuleService.findDetailOrder(article, user, orderApiId);
+        detailOrder.setReceiptApiId(receiptApiIdDto.getReceiptApiId());
 
-        return orderModuleService.findDetailOrder(article, user, orderApiId);
+        return detailOrder;
     }
 
     public CustomPage<OrderResponseDto> findAllOrder(String articleApiId, String sortOrder, String orderStatus, int page, int limit, String currentUsername) {

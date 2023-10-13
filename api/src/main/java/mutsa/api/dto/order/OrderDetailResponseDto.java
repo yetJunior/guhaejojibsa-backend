@@ -19,6 +19,11 @@ public class OrderDetailResponseDto {
     private String date;
     private OrderStatus orderStatus;
     private Long amount;
+    private String receiptApiId;
+
+    public void setReceiptApiId(String receiptApiId) {
+        this.receiptApiId = receiptApiId;
+    }
 
     public static OrderDetailResponseDto fromEntity(Order order) {
         OrderDetailResponseDto orderDetailResponseDto = new OrderDetailResponseDto();
