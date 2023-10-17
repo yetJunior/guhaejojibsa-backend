@@ -109,7 +109,7 @@ jobs:
             sudo docker stop ${{ secrets.DOCKERHUB_REPOSITORY }} || true
             sudo docker rm ${{ secrets.DOCKERHUB_REPOSITORY }} || true
             docker rmi $(docker images -f=reference="*/${{ secrets.DOCKERHUB_REPOSITORY }}" -q) || true
-            sudo docker run -d -p 80:8080 -e SPRING_PROFILES_ACTIVE=prod \
-              --label io.portainer.accesscontrol.users=gjuser --restart unless-stopped \
+            sudo docker run -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod \
+              --label io.portainer.accesscontrol.users=gjuser --restart on-failure:5 \
               --name ${{ secrets.DOCKERHUB_REPOSITORY }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
