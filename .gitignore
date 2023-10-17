@@ -1,7 +1,7 @@
 .idea/
 api/src/main/resources/application-*.yml
 .gradle/
-!**/**/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij+all,visualstudiocode,java,eclipse
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij+all,visualstudiocode,java,eclipse
