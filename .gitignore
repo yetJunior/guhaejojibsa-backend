@@ -1,6 +1,5 @@
 .idea/
 api/src/main/resources/application-*.yml
-!gradle/wrapper/gradle-wrapper.jar
 .gradle/
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij+all,visualstudiocode,java,eclipse
@@ -174,7 +173,7 @@ fabric.properties
 .mtj.tmp/
 
 # Package Files #
-*.jar
+#*.jar
 *.war
 *.nar
 *.ear
