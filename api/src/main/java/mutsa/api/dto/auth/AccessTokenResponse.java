@@ -14,7 +14,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AccessTokenResponse {
-
-    @NotBlank
     private String accessToken;
+    private int expiresTime;
 }

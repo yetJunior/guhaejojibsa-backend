@@ -3,12 +3,13 @@ package mutsa.api.util;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.Duration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.util.SerializationUtils;
+
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
-import org.springframework.http.ResponseCookie;
-import org.springframework.util.SerializationUtils;
 
 public class CookieUtil {
 
@@ -16,30 +17,26 @@ public class CookieUtil {
 
     public static Optional<Cookie> getCookie(HttpServletRequest request, String key) {
         return Arrays.stream(request.getCookies())
-            .filter(cookie -> cookie.getName().equals(key))
-            .findAny();
+                .filter(cookie -> cookie.getName().equals(key))
+                .findAny();
     }
 
-    public static ResponseCookie createCookie(String token) {
-        return ResponseCookie.from(JwtTokenProvider.REFRESH_TOKEN, token)
-            .httpOnly(true)
-            .secure(true)
-            .path("/")
-            .maxAge(Duration.ofDays(30))
-            .sameSite("None")
-            .build();
-    }
-
-    public static void addCookie(HttpServletResponse response, String key, String value) {
+    public static void setCookie(HttpServletResponse response, String key, String value, int maxAgeSeconds) {
         Cookie cookie = new Cookie(key, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(Duration.ofDays(30).toMillisPart());
+        cookie.setSecure(true);
+        cookie.setMaxAge(maxAgeSeconds);
         response.addCookie(cookie);
     }
 
+    public static void setCookie(HttpServletResponse response, ResponseCookie cookie) {
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+    }
+
     public static void removeCookie(HttpServletRequest request, HttpServletResponse response,
-        String name) {
+                                    String name) {
         Cookie[] cookies = request.getCookies();
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(name)) {
@@ -56,8 +53,8 @@ public class CookieUtil {
     }
 
     public static <T> T deserialize(Cookie cookie,
-        Class<T> tClass) {
+                                    Class<T> tClass) {
         return tClass.cast(
-            SerializationUtils.deserialize(Base64.getUrlDecoder().decode(cookie.getValue())));
+                SerializationUtils.deserialize(Base64.getUrlDecoder().decode(cookie.getValue())));
     }
 }

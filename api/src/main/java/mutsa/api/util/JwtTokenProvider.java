@@ -17,6 +17,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.api.config.jwt.JwtConfig;
 import mutsa.api.config.security.CustomPrincipalDetails;
+import mutsa.api.dto.auth.TokenDto;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -33,24 +34,27 @@ public class JwtTokenProvider {
     private static final String AUTHORITIES = "authorities";
     private final JwtConfig jwtConfig;
 
-    public String createAccessToken(HttpServletRequest request, CustomPrincipalDetails details) {
-
-        return BEARER + JWT.create()
+    public TokenDto createAccessToken(HttpServletRequest request, CustomPrincipalDetails details) {
+        Instant expiresAt = Instant.now().plusSeconds(Long.parseLong(jwtConfig.getAccessTokenExpire()));
+        String accessToken = BEARER + JWT.create()
                 .withSubject(details.getUsername())
-                .withIssuer(request.getRequestURI().toString())
+                .withIssuer(request.getRequestURI())
                 .withIssuedAt(Date.from(Instant.now()))
-                .withExpiresAt(Date.from(Instant.now().plusSeconds(Long.parseLong(jwtConfig.getAccessTokenExpire()))))
+                .withExpiresAt(Date.from(expiresAt))
                 .withClaim(AUTHORITIES, getAuthorities(details.getAuthorities())) //이게 없으면 에러가 발생한다(CustomAuthorizationFilter)
                 .sign(jwtConfig.getEncodedSecretKey());
+        return new TokenDto(accessToken, expiresAt.getNano());
     }
 
-    public String createRefreshToken(HttpServletRequest request, String subject) {
-        return JWT.create()
+    public TokenDto createRefreshToken(HttpServletRequest request, String subject) {
+        Instant expiresAt = Instant.now().plusSeconds(Long.parseLong(jwtConfig.getRefreshTokenExpire()));
+        String refreshToken = JWT.create()
                 .withSubject(subject)
-                .withIssuer(request.getRequestURI().toString())
+                .withIssuer(request.getRequestURI())
                 .withIssuedAt(Date.from(Instant.now()))
-                .withExpiresAt(Date.from(Instant.now().plusSeconds(Long.parseLong(jwtConfig.getRefreshTokenExpire()))))
+                .withExpiresAt(Date.from(expiresAt))
                 .sign(jwtConfig.getEncodedSecretKey());
+        return new TokenDto(refreshToken, expiresAt.getNano());
     }
 
 

@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import mutsa.api.dto.auth.TokenDto;
 import mutsa.api.dto.user.SignUpOAuth2UserDto;
 import mutsa.api.service.user.CustomUserDetailsService;
 import mutsa.api.service.user.UserService;
@@ -13,8 +14,6 @@ import mutsa.api.util.JwtTokenProvider;
 import mutsa.common.domain.models.user.embedded.OAuth2Type;
 import mutsa.common.repository.redis.RefreshTokenRedisRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -85,27 +84,18 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         CustomPrincipalDetails customPrincipalDetails = customUserDetailsService.loadUserByUsername(username);
 
         // JWT 생성
-        String accessToken = jwtTokenProvider.createAccessToken(request, customPrincipalDetails);
+        TokenDto accessToken = jwtTokenProvider.createAccessToken(request, customPrincipalDetails);
 
-        if (refreshTokenRedisRepository.getRefreshToken(username).isEmpty()) {
-            String token = jwtTokenProvider.createRefreshToken(request, username);
-            refreshTokenRedisRepository.setRefreshToken(username, token);
-        }
-        String refreshToken = refreshTokenRedisRepository.getRefreshToken(username).get();
-
-        ResponseCookie cookie = CookieUtil.createCookie(refreshToken);
-
-        response.setStatus(200);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("utf-8");
-        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        TokenDto refreshToken = jwtTokenProvider.createRefreshToken(request, username);
+        refreshTokenRedisRepository.setRefreshToken(username, refreshToken.getToken());
+        CookieUtil.setCookie(response, JwtTokenProvider.REFRESH_TOKEN, refreshToken.getToken(), refreshToken.getExpiredTime());
 
 
         // 목적지 URL 설정
         // 우리 서비스의 Frontend 구성에 따라 유연하게 대처해야 한다.
         String targetUrl = String.format("%s/oauth2-redirect?token=%s&&isNewUser=%s", frontendUrl, accessToken, isNewUser);
-
         log.info("url : {}", targetUrl);
+
         // 실제 Redirect 응답 생성
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }

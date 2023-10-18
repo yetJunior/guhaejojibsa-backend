@@ -9,4 +9,5 @@ import lombok.*;
 public class LoginResponseDto {
     private String userId;
     private String accessToken;
+    private int expiredTime;
 }
