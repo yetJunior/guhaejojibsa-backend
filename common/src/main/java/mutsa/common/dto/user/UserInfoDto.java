@@ -1,16 +1,13 @@
 package mutsa.common.dto.user;
 
-import static mutsa.common.constants.ImageConstants.DEFAULT_AVATAR_IMAGE;
+import lombok.*;
+import mutsa.common.domain.models.user.User;
+import org.springframework.util.StringUtils;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import mutsa.common.domain.models.user.User;
-import org.springframework.util.StringUtils;
+
+import static mutsa.common.constants.ImageConstants.DEFAULT_AVATAR_IMAGE;
 
 @Setter
 @Getter
@@ -36,10 +33,9 @@ public class UserInfoDto {
         userInfoDto.email = user.getEmail();
         userInfoDto.nickname = user.getUsername();
         userInfoDto.image_url = getImage(user.getImageUrl());
-        userInfoDto.role = user.getUserRoles()
-            .stream()
-            .map(o -> o.getRole().getValue().name())
-            .collect(Collectors.toSet());
+        userInfoDto.role = user.getRole()
+                .stream().map(o -> o.getRole().name())
+                .collect(Collectors.toSet());
 
         if (user.getAddress() != null) {
             userInfoDto.zipcode = user.getAddress().getZipcode();

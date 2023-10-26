@@ -2,16 +2,17 @@ package mutsa.api.config.security;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import mutsa.common.domain.models.user.Role;
 import mutsa.common.domain.models.user.User;
-import mutsa.common.domain.models.user.UserRole;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @Builder(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -96,12 +97,9 @@ public class CustomPrincipalDetails implements UserDetails, OAuth2User, Serializ
                 .username(user.getUsername())
                 .password(user.getPassword())
                 .attributes(attributes)
-                .authorities(user.getUserRoles().stream()
-                        .map((UserRole::getRole))
-                        .map(Role::getAuthorities)
-                        .flatMap(Set::stream)
-                        .map(authority ->
-                                new SimpleGrantedAuthority(authority.getName()))
+                .authorities(user.getRole().stream()
+                        .map(role ->
+                                new SimpleGrantedAuthority(role.getRole().toString()))
                         .collect(Collectors.toSet())
                 )
                 .build();

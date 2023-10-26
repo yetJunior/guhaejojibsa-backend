@@ -2,6 +2,7 @@ package mutsa.common.domain.models.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import lombok.*;
 import mutsa.common.domain.models.BaseTimeEntity;
@@ -71,11 +72,12 @@ public class User extends BaseTimeEntity implements Serializable {
     @Column(nullable = false, length = 2)
     private Boolean isAvailable;
 
-
-    @Singular
-    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
-    @JsonIgnore
-    private final Set<UserRole> userRoles = new HashSet<>();
+    @ManyToMany
+    @JsonDeserialize(using = RoleDeserializer.class)
+    @JoinTable(name = "user_role",
+            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)},
+            inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "role_id", nullable = false)})
+    private final Set<Role> role = new HashSet<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")
@@ -96,9 +98,8 @@ public class User extends BaseTimeEntity implements Serializable {
     }
 
     public boolean hasRole(RoleStatus roleStatus) {
-        return this.getUserRoles().stream()
-                .map(UserRole::getRole)
-                .map(Role::getValue)
+        return this.getRole().stream()
+                .map(Role::getRole)
                 .collect(Collectors.toSet())
                 .contains(roleStatus);
     }
@@ -113,6 +114,10 @@ public class User extends BaseTimeEntity implements Serializable {
 
     public void updateEmail(String email) {
         this.email = email;
+    }
+
+    public void setRole(Role role) {
+        this.role.add(role);
     }
 
     public static User of(String username, String encodedPassword, String email,
@@ -154,5 +159,16 @@ public class User extends BaseTimeEntity implements Serializable {
 
     public void setAvailable() {
         this.isAvailable = true;
+    }
+
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", apiId='" + apiId + '\'' +
+                ", username='" + username + '\'' +
+                ", nickname='" + nickname + '\'' +
+                '}';
     }
 }

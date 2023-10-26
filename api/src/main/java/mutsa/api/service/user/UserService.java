@@ -18,7 +18,6 @@ import mutsa.api.util.JwtTokenProvider.JWTInfo;
 import mutsa.common.domain.models.user.Role;
 import mutsa.common.domain.models.user.RoleStatus;
 import mutsa.common.domain.models.user.User;
-import mutsa.common.domain.models.user.UserRole;
 import mutsa.common.domain.models.user.embedded.Address;
 import mutsa.common.dto.user.UserInfoDto;
 import mutsa.common.exception.BusinessException;
@@ -27,7 +26,6 @@ import mutsa.common.repository.cache.UserCacheRepository;
 import mutsa.common.repository.redis.RefreshTokenRedisRepository;
 import mutsa.common.repository.user.RoleRepository;
 import mutsa.common.repository.user.UserRepository;
-import mutsa.common.repository.user.UserRoleRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,7 +45,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserCacheRepository userCacheRepository;
     private final RoleRepository roleRepository;
-    private final UserRoleRepository userRoleRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
     private final CustomUserDetailsService customUserDetailsService;
@@ -61,14 +58,15 @@ public class UserService {
         signUpUserDto.setPassword(bCryptPasswordEncoder.encode(signUpUserDto.getPassword()));
 
         User newUser = SignUpUserDto.from(signUpUserDto);
-        Role role = roleRepository.findByValue(RoleStatus.ROLE_USER)
+        Role role = roleRepository.findByRole(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
 
-        UserRole userRole = UserRole.of(newUser, role);
-        userRole.addUser(newUser);
+//        UserRole userRole = UserRole.of(newUser, role);
+//        userRole.addUser(newUser);
+
+        newUser.setRole(role);
 
         userRepository.save(newUser);
-        userRoleRepository.save(userRole);
     }
 
     @Transactional
@@ -81,13 +79,12 @@ public class UserService {
         signUpUserDto.setPassword(bCryptPasswordEncoder.encode(signUpUserDto.getPassword()));
 
         User newUser = SignUpOAuth2UserDto.from(signUpUserDto);
-        Role role = roleRepository.findByValue(RoleStatus.ROLE_USER)
+        Role role = roleRepository.findByRole(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
-        UserRole userRole = UserRole.of(newUser, role);
-        userRole.addUser(newUser);
-
+//        UserRole userRole = UserRole.of(newUser, role);
+//        userRole.addUser(newUser);
+        newUser.setRole(role);
         userRepository.save(newUser);
-        userRoleRepository.save(userRole);
     }
 
 
