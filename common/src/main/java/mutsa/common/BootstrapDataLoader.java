@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.common.domain.models.article.Article;
+import mutsa.common.domain.models.article.ArticleType;
 import mutsa.common.domain.models.order.Order;
 import mutsa.common.domain.models.payment.PayType;
 import mutsa.common.domain.models.payment.Payment;
@@ -134,11 +135,12 @@ public class BootstrapDataLoader {
         String username = login;
         Optional<User> userOptional = userRepository.findByUsername(username);
         return signUpOrUpdateUser(login, email, imageUrl, username, password, userOptional,
-                necessaryAttributes, role,nickname);
+                necessaryAttributes, role, nickname);
     }
 
     private User signUpOrUpdateUser(String login, String email, String imageUrl, String username, String password,
-                                    Optional<User> userOptional, Map<String, Object> necessaryAttributes, RoleStatus roleEnum,String nickname) {
+                                    Optional<User> userOptional, Map<String, Object> necessaryAttributes,
+                                    RoleStatus roleEnum, String nickname) {
         User user;
         //회원가입
         if (userOptional.isEmpty()) {
@@ -187,6 +189,7 @@ public class BootstrapDataLoader {
                     .description("desc-" + (i + 1))
                     .user(i % 2 == 0 ? user1 : user2)
                     .price(i * 2000L)
+                    .articleType(ArticleType.SELL)
                     .build();
 
             articles.add(article);
@@ -208,10 +211,13 @@ public class BootstrapDataLoader {
 
         List<Review> reviews = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
-            reviews.add(reviewRepository.save(Review.of(i % 2 == 0 ? user1 : user2, articles.get(i), "testContent" + (i + 1), (int) (Math.random() * 5 + 1))));
+            reviews.add(reviewRepository.save(
+                    Review.of(i % 2 == 0 ? user1 : user2, articles.get(i), "testContent" + (i + 1),
+                            (int) (Math.random() * 5 + 1))));
         }
         for (int i = 0; i < 11; i++) {
-            reviews.add(reviewRepository.save(Review.of(user1, articles.get(0), "testContent" + (i + 1), (int) (Math.random() * 5 + 1))));
+            reviews.add(reviewRepository.save(
+                    Review.of(user1, articles.get(0), "testContent" + (i + 1), (int) (Math.random() * 5 + 1))));
         }
         reviewRepository.saveAll(reviews);
     }
