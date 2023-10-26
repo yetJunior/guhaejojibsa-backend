@@ -8,6 +8,7 @@ package mutsa.api.dto.article;
 
 import static mutsa.common.constants.ImageConstants.DEFAULT_ARTICLE_IMG;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,7 @@ import mutsa.api.dto.image.ImageResponseDto;
 import mutsa.common.domain.models.Status;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.article.ArticleStatus;
+import mutsa.common.domain.models.article.ArticleType;
 import mutsa.common.domain.models.image.Image;
 
 @Builder
@@ -36,6 +38,9 @@ public class ArticlePageResponseDto {
     private ArticleStatus articleStatus;
     private String createdDate;
     private Long price;
+    private ArticleType articleType;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
     public static ArticlePageResponseDto to(Article entity) {
         return ArticlePageResponseDto.builder()
@@ -48,6 +53,9 @@ public class ArticlePageResponseDto {
                 .articleStatus(entity.getArticleStatus())
                 .createdDate(entity.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a hh:mm:ss")))
                 .price(entity.getPrice())
+                .articleType(entity.getArticleType())
+                .startDate(entity.getStartDate())
+                .endDate(entity.getEndDate())
                 .build();
     }
 }
