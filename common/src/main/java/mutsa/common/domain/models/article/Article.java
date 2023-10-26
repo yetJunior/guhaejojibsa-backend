@@ -1,6 +1,7 @@
 package mutsa.common.domain.models.article;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import mutsa.common.domain.models.BaseEntity;
 import mutsa.common.domain.models.Status;
@@ -54,9 +55,18 @@ public class Article extends BaseEntity implements Serializable {
     @Builder.Default
     private ArticleStatus articleStatus = ArticleStatus.LIVE;
 
-//    @OneToMany(fetch = FetchType.LAZY)
-//    @Builder.Default
-//    private List<Image> images = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private ArticleType articleType = ArticleType.SELL;
+
+    @Column
+    @Builder.Default
+    private LocalDateTime startDate = null;
+
+    @Column
+    @Builder.Default
+    private LocalDateTime endDate = null;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "article")
     @Builder.Default
@@ -77,10 +87,6 @@ public class Article extends BaseEntity implements Serializable {
     public void addOrder(Order order) {
         this.orders.add(order);
     }
-
-//    public void addImage(Image image) {this.images.add(image);}
-//
-//    public void addImages(Collection<Image> imageCollections) {this.images.addAll(imageCollections);}
 
     public boolean validUser(User user) {
         return Objects.equals(this.user.getId(), user.getId());
