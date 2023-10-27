@@ -75,4 +75,13 @@ class PaymentServiceTest {
         paymentService.tossPaymentFail("codeMock", "messageMock", "orderIdMock");
         verify(paymentModuleService, times(1)).tossPaymentFail("codeMock", "messageMock", "orderIdMock");
     }
+
+    @DisplayName("결제 취소")
+    @Test
+    void testTossPaymentCancel() {
+        String orderApiIdMock = "orderApiIdMock";
+        String cancelReasonMock = "Customer requested cancellation";
+        paymentService.tossPaymentCancel(orderApiIdMock, cancelReasonMock);
+        verify(paymentModuleService, times(1)).tossPaymentCancel(orderApiIdMock, cancelReasonMock);
+    }
 }
