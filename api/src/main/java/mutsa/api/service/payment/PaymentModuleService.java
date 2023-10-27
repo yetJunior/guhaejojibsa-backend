@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.api.config.common.CommonConfig;
 import mutsa.api.config.payment.TossPaymentConfig;
+import mutsa.api.dto.payment.PaymentCancelDto;
 import mutsa.api.dto.payment.PaymentDto;
 import mutsa.api.dto.payment.PaymentSuccessCardDto;
 import mutsa.api.dto.payment.PaymentSuccessDto;
@@ -102,6 +103,43 @@ public class PaymentModuleService {
         payment.updateFail(message, orderId);
     }
 
+    // 결제 취소 로직
+    @Transactional
+    public PaymentCancelDto tossPaymentCancel(String orderApiId, String cancelReason) {
+        Payment payment = paymentRepository.findByOrderKey(orderApiId).orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+        PaymentCancelDto result = requestPaymentCancel(payment.getPaymentKey(), cancelReason);
+
+        if (result == null) {
+            log.error("결제 취소 진행 중, 외부 API로의 요청을 실패하였습니다.");
+            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        log.info("결제 취소 성공 - 주문 ID : " + result.getOrderId());
+
+        updatePaymentAfterCancel(payment, cancelReason);
+        return result;
+    }
+
+    // 실제 결제 서버에 취소 요청 전달
+    @Transactional
+    public PaymentCancelDto requestPaymentCancel(String paymentKey, String cancelReason) {
+        HttpHeaders headers = getHeaders();
+        Map<String, Object> params = new HashMap<>();
+        params.put("cancelReason", cancelReason);
+
+        try {
+            return restTemplate.postForObject(TossPaymentConfig.URL + paymentKey + "/cancel", new HttpEntity<>(params, headers), PaymentCancelDto.class);
+        } catch (Exception ex) {
+            log.error("결제 취소 과정에서 외부 API로의 요청을 실패하였습니다.", ex);
+            throw new BusinessException(ErrorCode.EXTERNAL_API_ERROR);
+        }
+    }
+
+    // 결제 취소 시 정보 수정
+    private void updatePaymentAfterCancel(Payment payment, String cancelReason) {
+        payment.updateCancel(cancelReason);
+    }
+
     // 현재 유저 반환
     private User getCurrentUser() {
         return userRepository.findByUsername(SecurityUtil.getCurrentUsername()).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -186,7 +224,7 @@ public class PaymentModuleService {
     private Receipt createReceiptFromDto(PaymentSuccessDto dto, Payment payment) {
         return Receipt.builder()
                 .payment(payment)
-                .mid(dto.getMid())
+                .mid(dto.getMId())
                 .version(dto.getVersion())
                 .paymentKey(dto.getPaymentKey())
                 .orderId(dto.getOrderId())

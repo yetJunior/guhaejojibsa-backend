@@ -33,4 +33,9 @@ public class PaymentService {
     public void tossPaymentFail(String code, String message, String orderId) {
         paymentModuleService.tossPaymentFail(code, message, orderId);
     }
+
+    // 결제 취소 로직
+    public void tossPaymentCancel(String orderApiId, String cancelReason) {
+        paymentModuleService.tossPaymentCancel(orderApiId, cancelReason);
+    }
 }
