@@ -6,6 +6,8 @@
 
 package mutsa.api.dto.image;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,6 +21,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImagesRequestDto {
+    @NotBlank
     private String s3URL;
+    @NotBlank
     private String filename;
 }

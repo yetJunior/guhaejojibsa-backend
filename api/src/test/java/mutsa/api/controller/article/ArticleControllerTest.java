@@ -21,6 +21,7 @@ import mutsa.api.util.SecurityUtil;
 import mutsa.common.domain.models.Status;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.article.ArticleStatus;
+import mutsa.common.domain.models.article.ArticleType;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.user.UserRepository;
@@ -119,6 +120,7 @@ public class ArticleControllerTest {
                     .title("title-" + (i + 1))
                     .description("desc-" + (i + 1))
                     .user(i % 2 == 0 ? user1 : user2)
+                    .articleType(ArticleType.SELL)
                     .build();
 
             articles.add(article);
@@ -136,6 +138,7 @@ public class ArticleControllerTest {
                 .user(user1)
                 .title("test")
                 .description("test")
+                .articleType(ArticleType.SELL)
                 .build();
 
         entity = articleRepository.save(entity);
@@ -305,6 +308,7 @@ public class ArticleControllerTest {
         articleCreateRequestDto.setTitle("test Article");
         articleCreateRequestDto.setDescription("test Desc");
         articleCreateRequestDto.setPrice(119000L);
+        articleCreateRequestDto.setArticleType(ArticleType.SELL);
 
         when(SecurityUtil.getCurrentUsername()).thenReturn(user1.getUsername());
 
@@ -339,6 +343,7 @@ public class ArticleControllerTest {
         articleUpdateRequestDto.setPrice(10000L);
         articleUpdateRequestDto.setArticleStatus(ArticleStatus.EXPIRED);
         articleUpdateRequestDto.setApiId(articles.get(0).getApiId());
+        articleUpdateRequestDto.setArticleType(ArticleType.BUY);
 
         when(SecurityUtil.getCurrentUsername()).thenReturn(user1.getUsername());
 
