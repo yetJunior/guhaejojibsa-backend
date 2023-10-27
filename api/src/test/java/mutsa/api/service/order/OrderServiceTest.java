@@ -10,6 +10,7 @@ import mutsa.api.dto.order.OrderDetailResponseDto;
 import mutsa.api.dto.order.OrderFilterDto;
 import mutsa.api.dto.order.OrderStatusRequestDto;
 import mutsa.api.dto.payment.ReceiptApiIdDto;
+import mutsa.api.service.payment.PaymentService;
 import mutsa.api.service.payment.ReceiptService;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.order.Order;
@@ -36,7 +37,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = {ApiApplication.class, TestRedisConfiguration.class})
 @ActiveProfiles("test")
@@ -59,6 +60,8 @@ class OrderServiceTest {
     private RedisTemplate<String, User> userRedisTemplate;
     @MockBean
     private ReceiptService receiptService;
+    @MockBean
+    private PaymentService paymentService;
     private User seller, consumer;
     private Article article, article2;
 
@@ -197,7 +200,7 @@ class OrderServiceTest {
         entityManager.clear();
 
         //when
-        orderService.updateOrderStatus(article.getApiId(), savedOrder.getApiId(), new OrderStatusRequestDto("END"), consumer.getUsername());
+        orderService.updateOrderStatus(article.getApiId(), savedOrder.getApiId(), new OrderStatusRequestDto("END", "Test Cancel Reason"), consumer.getUsername());
         entityManager.flush();
         entityManager.clear();
 
@@ -221,5 +224,37 @@ class OrderServiceTest {
         //then
         Optional<Order> byApiId = orderRepository.findByApiId(article.getApiId());
         assertThat(byApiId.isPresent()).isFalse();
+    }
+
+    @Test
+    void updateOrderStatusToCancel() {
+        //given
+        Order order = Order.of(article, consumer);
+        Order savedOrder = orderRepository.save(order);
+        Payment payment = Payment.of(PayType.CARD, article, order);
+        paymentRepository.save(payment);
+        entityManager.flush();
+        entityManager.clear();
+
+        doNothing().when(paymentService).tossPaymentCancel(anyString(), anyString());
+
+        String cancelReason = "Customer wants to cancel the order";
+
+        //when
+        orderService.updateOrderStatus(
+                article.getApiId(),
+                savedOrder.getApiId(),
+                new OrderStatusRequestDto("CANCEL", cancelReason),
+                consumer.getUsername());
+        entityManager.flush();
+        entityManager.clear();
+
+        //then
+        Optional<Order> updatedOrder = orderRepository.findByApiId(order.getApiId());
+
+        assertThat(updatedOrder.isPresent()).isTrue();
+        assertThat(updatedOrder.get().getOrderStatus()).isEqualTo(OrderStatus.CANCEL);
+
+        verify(paymentService, times(1)).tossPaymentCancel(savedOrder.getApiId(), cancelReason);
     }
 }
