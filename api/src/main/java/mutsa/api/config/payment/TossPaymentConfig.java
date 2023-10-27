@@ -15,8 +15,8 @@ public class TossPaymentConfig {
     private String successUrl;
     @Value("${payment.toss.fail_url}")
     private String failUrl;
-    @Value("${payment.toss.mid}")
-    private String mid;     // 가맹점 ID. 고유 식별자 (사업자 등록 필요)
+    @Value("${payment.toss.mId}")
+    private String mId;     // 가맹점 ID. 고유 식별자 (사업자 등록 필요)
 
     public static final String URL = "https://api.tosspayments.com/v1/payments/";
 }

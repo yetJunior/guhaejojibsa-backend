@@ -139,7 +139,7 @@ public class ReceiptControllerTest {
 
     private Receipt createAndSaveReceipt(PaymentSuccessDto dto) {
         Receipt receipt = Receipt.builder()
-                .mid(dto.getMid())
+                .mid(dto.getMId())
                 .version(dto.getVersion())
                 .paymentKey(dto.getPaymentKey())
                 .orderId(dto.getOrderId())

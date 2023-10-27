@@ -3,9 +3,11 @@ package mutsa.api.dto.payment;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-public class PaymentSuccessDto {
+public class PaymentCancelDto {
     String mId;             // 가맹점 ID. 고유 식별자
     String version;         // API 버전
     String paymentKey;      // 결제 키. 결제 식별자
@@ -22,6 +24,7 @@ public class PaymentSuccessDto {
     String approvedAt;      // 결제 승인 시각
     String useEscrow;       // 에스크로 사용 여부
     String cultureExpense;  // 문화비 지출 여부
-    PaymentSuccessCardDto card; // 카드 결제 내역
+    PaymentCancelCardDto card; // 카드 결제 내역
     String type;            // 결제 유형
+    List<CancelsDto> cancels;     // 결제 취소
 }
