@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PaymentSuccessDto {
-    String mid;             // 가맹점 ID. 고유 식별자
+    String mId;             // 가맹점 ID. 고유 식별자
     String version;         // API 버전
     String paymentKey;      // 결제 키. 결제 식별자
     String orderId;         // 주문 ID. Toss API 호출 키
