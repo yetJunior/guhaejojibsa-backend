@@ -61,9 +61,6 @@ public class UserService {
         Role role = roleRepository.findByRole(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
 
-//        UserRole userRole = UserRole.of(newUser, role);
-//        userRole.addUser(newUser);
-
         newUser.setRole(role);
 
         userRepository.save(newUser);
@@ -81,8 +78,7 @@ public class UserService {
         User newUser = SignUpOAuth2UserDto.from(signUpUserDto);
         Role role = roleRepository.findByRole(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
-//        UserRole userRole = UserRole.of(newUser, role);
-//        userRole.addUser(newUser);
+
         newUser.setRole(role);
         userRepository.save(newUser);
     }

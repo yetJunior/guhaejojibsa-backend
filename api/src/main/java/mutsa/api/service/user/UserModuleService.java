@@ -34,9 +34,14 @@ public class UserModuleService {
     }
 
     public User getByUsername(String username) {
-        return userCacheRepository.getUser(username).orElseGet(() ->
-                userRepository.findByUsername(username).orElseThrow(() ->
-                        new BusinessException(USER_NOT_FOUND)));
+        if (userCacheRepository.getUser(username).isEmpty()) {
+            User user = userRepository.findByUsername(username).orElseThrow(() ->
+                    new BusinessException(USER_NOT_FOUND));
+
+            //유저 정보가 없는 경우 다시 캐싱한다.
+            userCacheRepository.setUser(user);
+        }
+        return userCacheRepository.getUser(username).get();
     }
 
     public Optional<User> getByEmail(String email) {
