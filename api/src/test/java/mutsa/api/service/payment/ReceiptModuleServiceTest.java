@@ -40,7 +40,6 @@ public class ReceiptModuleServiceTest {
         // Given
         PaymentSuccessDto paymentSuccessDto = createPaymentSuccessDto();
         Receipt savedReceipt = createAndSaveReceipt(paymentSuccessDto);
-        ;
         createAndSaveCardReceipt(savedReceipt);
 
         // When
@@ -53,7 +52,7 @@ public class ReceiptModuleServiceTest {
 
     private Receipt createAndSaveReceipt(PaymentSuccessDto dto) {
         Receipt receipt = Receipt.builder()
-                .mid(dto.getMid())
+                .mid(dto.getMId())
                 .version(dto.getVersion())
                 .paymentKey(dto.getPaymentKey())
                 .orderId(dto.getOrderId())

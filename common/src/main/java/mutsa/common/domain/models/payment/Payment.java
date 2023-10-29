@@ -64,6 +64,11 @@ public class Payment extends BaseEntity {
         this.failReason = message;
     }
 
+    public void updateCancel(String cancelReason) {
+        this.cancelYN = true;
+        this.cancelReason = cancelReason;
+    }
+
     public static Payment of(PayType payType, Article article, Order order) {
         return Payment.builder()
                 .payType(payType)

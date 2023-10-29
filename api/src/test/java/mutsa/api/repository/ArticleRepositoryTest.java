@@ -10,6 +10,7 @@ import mutsa.api.ApiApplication;
 import mutsa.api.config.TestRedisConfiguration;
 import mutsa.common.domain.filter.article.ArticleFilter;
 import mutsa.common.domain.models.article.Article;
+import mutsa.common.domain.models.article.ArticleType;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.user.UserRepository;
@@ -59,6 +60,7 @@ public class ArticleRepositoryTest {
                     .title("article-" + (i + 1))
                     .description("desc-" + (i + 1))
                     .user(user1)
+                    .articleType(ArticleType.SELL)
                     .build();
             articles.add(article);
         }

@@ -17,6 +17,7 @@ import mutsa.api.dto.article.ArticleUpdateRequestDto;
 import mutsa.common.domain.models.Status;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.article.ArticleStatus;
+import mutsa.common.domain.models.article.ArticleType;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.repository.article.ArticleRepository;
 import mutsa.common.repository.user.UserRepository;
@@ -61,6 +62,7 @@ public class ArticleServiceTest {
                     .description("desc-" + (i + 1))
                     .price((long) (i * 1000))
                     .user(user)
+                    .articleType(ArticleType.SELL)
                     .build();
             articles.add(article);
         }
@@ -84,6 +86,7 @@ public class ArticleServiceTest {
         requestDto.setTitle("Article1");
         requestDto.setDescription("Article1 Desc");
         requestDto.setPrice(10000L);
+        requestDto.setArticleType(ArticleType.SELL);
 
         ArticleResponseDto responseDto = articleService.save(requestDto);
 
@@ -102,7 +105,10 @@ public class ArticleServiceTest {
                 articles.get(0).getApiId(),
                 ArticleStatus.EXPIRED,
                 null,
-                119000L
+                119000L,
+                ArticleType.SELL,
+                null,
+                null
         );
 
         ArticleResponseDto responseDto = articleService.update(updateDto);

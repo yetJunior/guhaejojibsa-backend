@@ -7,7 +7,7 @@ import mutsa.common.domain.models.payment.Receipt;
 @Getter
 @Builder
 public class ReceiptResponseDto {
-    String mid;             // 가맹점 ID. 고유 식별자
+    String mId;             // 가맹점 ID. 고유 식별자
     String version;         // API 버전
     String paymentKey;      // 결제 키. 결제 식별자
     String orderId;         // 주문 ID. Toss API 호출 키
@@ -32,7 +32,7 @@ public class ReceiptResponseDto {
 
     public static ReceiptResponseDto of(Receipt receipt) {
         return ReceiptResponseDto.builder()
-                .mid(receipt.getMid())
+                .mId(receipt.getMid())
                 .version(receipt.getVersion())
                 .paymentKey(receipt.getPaymentKey())
                 .orderId(receipt.getOrderId())

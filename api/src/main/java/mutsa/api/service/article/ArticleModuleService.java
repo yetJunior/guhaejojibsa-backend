@@ -47,24 +47,9 @@ public class ArticleModuleService {
     public Article update(ArticleUpdateRequestDto updateDto) {
         Article article = articleUtil.validArticleAuthor(updateDto);
 
-        article.setTitle(updateDto.getTitle());
-        article.setDescription(updateDto.getDescription());
-        article.setArticleStatus(updateDto.getArticleStatus());
-        article.setPrice(updateDto.getPrice() < 0 ? 0 : updateDto.getPrice());
+        article = dtoToEntity(article, updateDto);
 
         return article;
-    }
-
-//    @Transactional
-//    public Article setImages(Article article, Collection<Image> imageCollection) {
-//        article.addImages(imageCollection);
-//
-//        return articleRepository.save(article);
-//    }
-
-    @Transactional
-    public Article saveTest(ArticleCreateRequestDto requestDto) {
-        return articleRepository.save(dtoToEntity(requestDto));
     }
 
     public Article dtoToEntity(ArticleCreateRequestDto requestDto) {
@@ -72,12 +57,22 @@ public class ArticleModuleService {
                 .title(requestDto.getTitle())
                 .description(requestDto.getDescription())
                 .price(requestDto.getPrice() < 0 ? 0 : requestDto.getPrice())
+                .articleType(requestDto.getArticleType())
+                .startDate(requestDto.getStartDate())
+                .endDate(requestDto.getEndDate())
                 .build();
     }
 
-    public Article updateDtoToEntity(ArticleUpdateRequestDto updateDto) {
-        return articleRepository.getByApiId(updateDto.getApiId())
-                .orElseThrow(() -> new BusinessException(ARTICLE_NOT_FOUND));
+    public Article dtoToEntity(Article article, ArticleUpdateRequestDto updateDto) {
+        article.setTitle(updateDto.getTitle());
+        article.setDescription(updateDto.getDescription());
+        article.setArticleStatus(updateDto.getArticleStatus());
+        article.setPrice(updateDto.getPrice() < 0 ? 0 : updateDto.getPrice());
+        article.setArticleType(updateDto.getArticleType());
+        article.setStartDate(updateDto.getStartDate());
+        article.setEndDate(updateDto.getEndDate());
+
+        return article;
     }
 
     @Transactional(readOnly = true)
@@ -137,10 +132,4 @@ public class ArticleModuleService {
 
         return articleRepository.getPage(articleFilter, pageable);
     }
-
-//    @Transactional
-//    public Article deleteImages(Article article) {
-//        article.setImages(new ArrayList<>());
-//        return articleRepository.save(article);
-//    }
 }

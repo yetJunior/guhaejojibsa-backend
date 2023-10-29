@@ -9,12 +9,15 @@ import mutsa.api.dto.order.OrderResponseListDto;
 import mutsa.api.dto.order.OrderStatusRequestDto;
 import mutsa.api.dto.payment.ReceiptApiIdDto;
 import mutsa.api.service.article.ArticleModuleService;
+import mutsa.api.service.payment.PaymentService;
 import mutsa.api.service.payment.ReceiptService;
 import mutsa.api.service.user.UserModuleService;
 import mutsa.common.domain.filter.order.OrderFilter;
 import mutsa.common.domain.models.article.Article;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.dto.order.OrderResponseDto;
+import mutsa.common.exception.BusinessException;
+import mutsa.common.exception.ErrorCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +32,7 @@ public class OrderService {
     private final ArticleModuleService articleModuleService;
     private final OrderModuleService orderModuleService;
     private final ReceiptService receiptService;
+    private final PaymentService paymentService;
 
     public OrderDetailResponseDto findDetailOrder(String articleApiId, String orderApiId, String currentUsername) {
         User user = userService.getByUsername(currentUsername);
@@ -70,6 +74,17 @@ public class OrderService {
     public OrderDetailResponseDto updateOrderStatus(String articleApiId, String orderApiId, OrderStatusRequestDto orderStatusRequestDto, String currentUsername) {
         User user = userService.getByUsername(currentUsername);
         Article article = articleModuleService.getByApiId(articleApiId);
+
+        if (orderStatusRequestDto.getOrderStatus().equals("CANCEL")) {
+            String cancelReason = orderStatusRequestDto.getCancelReason();
+
+            if (cancelReason == null || cancelReason.isEmpty() || cancelReason.isBlank()) {
+                log.error("주문 취소에 대한 사유를 불러올 수 없습니다.");
+                throw new BusinessException(ErrorCode.CANCEL_REASON_NOT_FOUND);
+            }
+
+            paymentService.tossPaymentCancel(orderApiId, cancelReason);
+        }
 
         return orderModuleService.updateOrderStatus(article, user, orderStatusRequestDto, orderApiId);
     }

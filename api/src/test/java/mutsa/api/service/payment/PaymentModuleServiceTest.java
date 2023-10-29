@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import mutsa.api.ApiApplication;
 import mutsa.api.config.TestRedisConfiguration;
 import mutsa.api.config.payment.TossPaymentConfig;
+import mutsa.api.dto.payment.PaymentCancelDto;
 import mutsa.api.dto.payment.PaymentDto;
 import mutsa.api.dto.payment.PaymentSuccessCardDto;
 import mutsa.api.dto.payment.PaymentSuccessDto;
@@ -163,6 +164,39 @@ class PaymentModuleServiceTest {
 
         Optional<CardReceipt> optionalCardReceipt = cardReceiptRepository.findByReceipt(optionalReceipt.get());
         assertTrue(optionalCardReceipt.isPresent());
+    }
+
+    @DisplayName("결제 취소")
+    @Test
+    void tossPaymentCancelTest() {
+        // Given
+        String cancelReason = "Customer requested cancellation";
+        Order savedOrder = createAndSaveOrder();
+        Payment savedPayment = createAndSavePayment(article, savedOrder);
+        savedPayment.updateAfterSuccess("validPaymentKey");
+
+        String expectedResponseJson = "{\"orderId\":\"" + savedOrder.getApiId() + "\"}";
+
+        mockServer.expect(ExpectedCount.once(),
+                        requestTo(TossPaymentConfig.URL + savedPayment.getPaymentKey() + "/cancel"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess(
+                        expectedResponseJson,
+                        MediaType.APPLICATION_JSON));
+
+        // When
+        PaymentCancelDto actualResponse = paymentModuleService.tossPaymentCancel(savedOrder.getApiId(), cancelReason);
+
+        // Then
+        assertThat(actualResponse).isNotNull();
+        assertThat(actualResponse.getOrderId()).isEqualTo(savedOrder.getApiId());
+
+        Optional<Payment> canceledPaymentRecord = paymentRepository.findByOrderKey(savedOrder.getApiId());
+        assertThat(canceledPaymentRecord.isPresent()).isTrue();
+        assertThat(canceledPaymentRecord.get().isCancelYN()).isTrue();
+        assertThat(canceledPaymentRecord.get().getCancelReason()).isEqualTo(cancelReason);
+
+        mockServer.verify();
     }
 
     private Order createAndSaveOrder() {

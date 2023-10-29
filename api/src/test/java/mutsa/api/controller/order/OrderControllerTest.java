@@ -287,7 +287,7 @@ class OrderControllerTest {
 
         //given
         when(SecurityUtil.getCurrentUsername()).thenReturn(consumer.getUsername());
-        OrderStatusRequestDto dto = new OrderStatusRequestDto("END");
+        OrderStatusRequestDto dto = new OrderStatusRequestDto("END", "Test Cancel Reason");
         String requestBody = new ObjectMapper().writeValueAsString(dto);
 
         //when

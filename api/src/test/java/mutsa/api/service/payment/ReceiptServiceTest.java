@@ -51,7 +51,6 @@ public class ReceiptServiceTest {
         // Given
         PaymentSuccessDto paymentSuccessDto = createPaymentSuccessDto();
         Receipt savedReceipt = createAndSaveReceipt(paymentSuccessDto);
-        ;
         CardReceipt saveCardReceipt = createAndSaveCardReceipt(savedReceipt);
 
         when(receiptModuleService.getReceiptByApiId(anyString())).thenReturn(savedReceipt);
@@ -67,7 +66,7 @@ public class ReceiptServiceTest {
 
     private Receipt createAndSaveReceipt(PaymentSuccessDto dto) {
         Receipt receipt = Receipt.builder()
-                .mid(dto.getMid())
+                .mid(dto.getMId())
                 .version(dto.getVersion())
                 .paymentKey(dto.getPaymentKey())
                 .orderId(dto.getOrderId())

@@ -8,4 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 public class OrderStatusRequestDto {
     String orderStatus;
+    String cancelReason;
 }
