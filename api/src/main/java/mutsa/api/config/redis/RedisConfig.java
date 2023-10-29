@@ -1,11 +1,13 @@
 package mutsa.api.config.redis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.api.service.chat.RedisMessageSubscriber;
+import mutsa.common.domain.models.user.Role;
 import mutsa.common.domain.models.user.User;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -26,7 +28,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Profile("!test")
 @Slf4j
 public class RedisConfig {
-    private final RedisProperties properties;
     @Value("${spring.data.redis.host}")
     private String host;
     @Value("${spring.data.redis.port}")

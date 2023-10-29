@@ -10,6 +10,7 @@ import mutsa.api.config.security.CustomPrincipalDetails;
 import mutsa.api.dto.LoginResponseDto;
 import mutsa.api.dto.auth.AccessTokenResponse;
 import mutsa.api.dto.auth.LoginRequest;
+import mutsa.api.dto.auth.TokenDto;
 import mutsa.api.dto.user.*;
 import mutsa.api.util.CookieUtil;
 import mutsa.api.util.JwtTokenProvider;
@@ -17,7 +18,6 @@ import mutsa.api.util.JwtTokenProvider.JWTInfo;
 import mutsa.common.domain.models.user.Role;
 import mutsa.common.domain.models.user.RoleStatus;
 import mutsa.common.domain.models.user.User;
-import mutsa.common.domain.models.user.UserRole;
 import mutsa.common.domain.models.user.embedded.Address;
 import mutsa.common.dto.user.UserInfoDto;
 import mutsa.common.exception.BusinessException;
@@ -26,9 +26,6 @@ import mutsa.common.repository.cache.UserCacheRepository;
 import mutsa.common.repository.redis.RefreshTokenRedisRepository;
 import mutsa.common.repository.user.RoleRepository;
 import mutsa.common.repository.user.UserRepository;
-import mutsa.common.repository.user.UserRoleRepository;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,7 +45,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserCacheRepository userCacheRepository;
     private final RoleRepository roleRepository;
-    private final UserRoleRepository userRoleRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
     private final CustomUserDetailsService customUserDetailsService;
@@ -62,14 +58,12 @@ public class UserService {
         signUpUserDto.setPassword(bCryptPasswordEncoder.encode(signUpUserDto.getPassword()));
 
         User newUser = SignUpUserDto.from(signUpUserDto);
-        Role role = roleRepository.findByValue(RoleStatus.ROLE_USER)
+        Role role = roleRepository.findByRole(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
 
-        UserRole userRole = UserRole.of(newUser, role);
-        userRole.addUser(newUser);
+        newUser.setRole(role);
 
         userRepository.save(newUser);
-        userRoleRepository.save(userRole);
     }
 
     @Transactional
@@ -82,13 +76,11 @@ public class UserService {
         signUpUserDto.setPassword(bCryptPasswordEncoder.encode(signUpUserDto.getPassword()));
 
         User newUser = SignUpOAuth2UserDto.from(signUpUserDto);
-        Role role = roleRepository.findByValue(RoleStatus.ROLE_USER)
+        Role role = roleRepository.findByRole(RoleStatus.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNKNOWN_ROLE));
-        UserRole userRole = UserRole.of(newUser, role);
-        userRole.addUser(newUser);
 
+        newUser.setRole(role);
         userRepository.save(newUser);
-        userRoleRepository.save(userRole);
     }
 
 
@@ -111,13 +103,14 @@ public class UserService {
 
             User user = fromJwtInfo(jwtInfo);
 
-            String accessToken = jwtTokenProvider.createAccessToken(request,
+            TokenDto accessToken = jwtTokenProvider.createAccessToken(request,
                     customUserDetailsService.loadUserByUsername(user.getUsername()));
 
             log.info("Access Token : {}", accessToken);
 
             return AccessTokenResponse.builder()
-                    .accessToken(accessToken)
+                    .accessToken(accessToken.getToken())
+                    .expiresTime(accessToken.getExpiredTime())
                     .build();
 
         } catch (JWTVerificationException e) {
@@ -179,22 +172,12 @@ public class UserService {
         //로그인 시에 유저 캐시화
         userCacheRepository.setUser(userModuleService.getByUsername(loginDto.getUsername()));
 
-        String accessToken = jwtTokenProvider.createAccessToken(httpServletRequest, principalDetails);
+        TokenDto accessToken = jwtTokenProvider.createAccessToken(httpServletRequest, principalDetails);
+        TokenDto refreshToken = jwtTokenProvider.createRefreshToken(httpServletRequest, loginDto.getUsername());
+        refreshTokenRedisRepository.setRefreshToken(loginDto.getUsername(), refreshToken.getToken());
 
-        if (!refreshTokenRedisRepository.getRefreshToken(loginDto.getUsername()).isPresent()) {
-            String token = jwtTokenProvider.createRefreshToken(httpServletRequest, loginDto.getUsername());
-            refreshTokenRedisRepository.setRefreshToken(loginDto.getUsername(), token);
-        }
-        String refreshToken = refreshTokenRedisRepository.getRefreshToken(loginDto.getUsername()).get();
-
-        LoginResponseDto loginResponseDto = new LoginResponseDto(principalDetails.getUsername(), accessToken);
-
-        ResponseCookie cookie = CookieUtil.createCookie(refreshToken);
-        httpServletResponse.setStatus(200);
-        httpServletResponse.setContentType("application/json");
-        httpServletResponse.setCharacterEncoding("utf-8");
-        httpServletResponse.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return loginResponseDto;
+        CookieUtil.setCookie(httpServletResponse, JwtTokenProvider.REFRESH_TOKEN, refreshToken.getToken(), refreshToken.getExpiredTime());
+        return new LoginResponseDto(principalDetails.getUsername(), accessToken.getToken(), accessToken.getExpiredTime());
     }
 
     public String refreshToken(HttpServletRequest request) {

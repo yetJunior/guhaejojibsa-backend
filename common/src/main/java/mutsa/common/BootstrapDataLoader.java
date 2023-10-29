@@ -19,7 +19,6 @@ import mutsa.common.repository.review.ReviewRepository;
 import mutsa.common.repository.user.AuthorityRepository;
 import mutsa.common.repository.user.RoleRepository;
 import mutsa.common.repository.user.UserRepository;
-import mutsa.common.repository.user.UserRoleRepository;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,7 +32,6 @@ import java.util.*;
 public class BootstrapDataLoader {
 
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
     private final AuthorityRepository authorityRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -144,13 +142,14 @@ public class BootstrapDataLoader {
         User user;
         //회원가입
         if (userOptional.isEmpty()) {
-            Role role = roleRepository.findByValue(roleEnum).orElseThrow(() ->
+            Role role = roleRepository.findByRole(roleEnum).orElseThrow(() ->
                     new EntityNotFoundException(roleEnum + "에 해당하는 Role이 없습니다."));
             user = User.of(username, bCryptPasswordEncoder.encode(password), email, login, imageUrl, nickname);
-            UserRole userRole = UserRole.of(user, role);
+//            UserRole userRole = UserRole.of(user, role);
 
+            user.setRole(role);
             userRepository.save(user);
-            userRoleRepository.save(userRole);
+//            userRoleRepository.save(userRole);
             necessaryAttributes.put("create_flag", true);
         } else {
             user = userOptional.get();

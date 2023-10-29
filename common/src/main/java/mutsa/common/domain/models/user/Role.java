@@ -1,5 +1,6 @@
 package mutsa.common.domain.models.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import mutsa.common.domain.models.BaseTimeEntity;
@@ -20,18 +21,21 @@ import java.util.stream.Collectors;
 public class Role extends BaseTimeEntity implements Serializable {
 
     @Id
+    @JsonIgnore
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
     private Long id;
 
+    @JsonIgnore
     @Column(nullable = false, updatable = false)
     private final String apiId = UUID.randomUUID().toString();
 
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
-    private RoleStatus value;
+    private RoleStatus role;
 
     @ManyToMany
+    @JsonIgnore
     @JoinTable(name = "role_authority",
             joinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "role_id", nullable = false)},
             inverseJoinColumns = {@JoinColumn(name = "authority_id", referencedColumnName = "authority_id", nullable = false)})
@@ -39,7 +43,7 @@ public class Role extends BaseTimeEntity implements Serializable {
 
     public static Role of(RoleStatus value) {
         return Role.builder()
-                .value(value)
+                .role(value)
                 .build();
     }
 
