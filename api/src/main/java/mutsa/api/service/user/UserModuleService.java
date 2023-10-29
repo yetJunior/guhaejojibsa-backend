@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mutsa.common.domain.models.user.User;
 import mutsa.common.exception.BusinessException;
+import mutsa.common.exception.ErrorCode;
 import mutsa.common.repository.cache.UserCacheRepository;
 import mutsa.common.repository.user.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,7 +36,7 @@ public class UserModuleService {
     public User getByUsername(String username) {
         return userCacheRepository.getUser(username).orElseGet(() ->
                 userRepository.findByUsername(username).orElseThrow(() ->
-                        new UsernameNotFoundException("not found username:" + username)));
+                        new BusinessException(USER_NOT_FOUND)));
     }
 
     public Optional<User> getByEmail(String email) {
